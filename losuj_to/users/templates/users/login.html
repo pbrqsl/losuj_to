@@ -1,0 +1,17 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <fieldset>
+            {{ form.as_p }}
+        </fieldset>
+        <button type="submit">Sign_in</button>
+    </form>
+
+
+    {% for error in form.non_field_errors %}
+        {{error}}
+    {% endfor %}
+{% endblock %}
