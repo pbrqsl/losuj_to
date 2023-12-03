@@ -7,10 +7,12 @@ from users.views import (
     CustomPasswordResetConfirm,
     CustomPasswordResetDone,
     CustomPasswordResetComplete,
+    token_login_view,
 )
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
+    path("secret_login/", token_login_view, name="token_login"),
     path("login/", CustomLoginView.as_view(), name="login"),
     path("register/", CustomRegisterView.as_view(), name="register"),
     path("home/", HomeView.as_view(), name="home"),

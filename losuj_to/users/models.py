@@ -9,6 +9,7 @@ class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True)
     temporary = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
+    user_token = models.CharField(max_length=255, blank=True, null=True)
 
     objects = CustomUserManager()
 
