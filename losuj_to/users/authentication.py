@@ -23,17 +23,17 @@ class CustomAuthBackend:
 
 class TokenAuthBackend(ModelBackend):
     def authenticate(self, request, token=None, **kwargs):
-        UserModel = get_user_model()
+        user_model = get_user_model()
         if token:
             try:
-                user = UserModel.objects.get(user_token=token)
+                user = user_model.objects.get(user_token=token)
                 return user
-            except UserModel.DoesNotExist:
+            except user_model.DoesNotExist:
                 return None
 
     def get_user(self, user_id):
-        UserModel = get_user_model()
+        user_model = get_user_model()
         try:
-            return UserModel.objects.get(pk=user_id)
-        except UserModel.DoesNotExist:
+            return user_model.objects.get(pk=user_id)
+        except user_model.DoesNotExist:
             return None
