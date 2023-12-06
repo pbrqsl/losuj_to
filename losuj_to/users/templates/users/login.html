@@ -1,7 +1,7 @@
 {% extends 'users/base.html' %}
 
 {% block content %}
-
+    {% load socialaccount %}
     <form method="POST">
         {% csrf_token %}
         <fieldset>
@@ -9,8 +9,14 @@
         </fieldset>
         <button type="submit">Sign_in</button>
     </form>
+    {% if not user.is_authenticated %}
+        <h2>Google login</h2>
+        <a href='{% provider_login_url "google" %}?next=/'>Log in with google</a>
 
-
+    {% else %}
+        <p>You are signed in as {{ user.email }}</p>
+        <p><a href="{% url 'logout' %}">logout</a></p>
+    {% endif %}
     {% for error in form.non_field_errors %}
         {{error}}
     {% endfor %}

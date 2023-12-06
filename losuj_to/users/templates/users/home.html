@@ -2,9 +2,32 @@
 
 {% block content %}
 
-homepage
-<h1>hello {{ user.email }} !!</h1>
-<h2></h2>
+{% if user.is_authenticated %}
+
+<svg width="300" height="300" style="border:1px solid #000;">
+    <!-- Draw the present box -->
+    <rect x="50" y="50" width="200" height="200" stroke="#8B0000" stroke-width="2" fill="none"></rect>
+
+    <!-- Draw some decorative elements -->
+    <rect x="50" y="40" width="10" height="10" fill="#00FF00"></rect>
+    <rect x="120" y="40" width="10" height="10" fill="#00FF00"></rect>
+    <rect x="190" y="40" width="10" height="10" fill="#00FF00"></rect>
+    <rect x="50" y="250" width="10" height="10" fill="#00FF00"></rect>
+    <rect x="120" y="250" width="10" height="10" fill="#00FF00"></rect>
+    <rect x="190" y="250" width="10" height="10" fill="#00FF00"></rect>
+
+    <!-- Draw the vector dog -->
+    <ellipse cx="150" cy="170" rx="40" ry="30" fill="#8B4513"></ellipse> <!-- Dog body -->
+    <circle cx="130" cy="160" r="5" fill="black"></circle> <!-- Left eye -->
+    <circle cx="170" cy="160" r="5" fill="black"></circle> <!-- Right eye -->
+    <rect x="140" y="180" width="20" height="5" fill="black"></rect> <!-- Mouth -->
+
+    <!-- You can add more elements to make the dog more detailed -->
+</svg>
+                    {% else %}
+                    version for not authenticated users
+
+{% endif  %}
 
 
 

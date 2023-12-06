@@ -1,6 +1,7 @@
 from django.urls import path
 from users.views import (
     CustomLoginView,
+    CustomLogoutView,
     CustomRegisterView,
     HomeView,
     CustomPasswordReset,
@@ -11,8 +12,10 @@ from users.views import (
 
 urlpatterns = [
     path("login/", CustomLoginView.as_view(), name="login"),
+    # path("logout/", logout_view, name="logout"),
+    path("logout/", CustomLogoutView.as_view(), name="logout"),
     path("register/", CustomRegisterView.as_view(), name="register"),
-    path("home/", HomeView.as_view(), name="home"),
+    path("", HomeView.as_view(), name="home"),
     path("reset_password/", CustomPasswordReset.as_view(), name="password_reset"),
     path(
         "reset_password_confirm/<uidb64>/<token>/",

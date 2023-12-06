@@ -15,6 +15,8 @@ from users.forms import CustomUserCreationForm, CustomPasswordResetForm
 from django.views.generic import TemplateView
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import redirect
+from django.contrib.auth import logout
+from django.views.generic import View
 
 
 class CustomLoginView(LoginView):
@@ -35,6 +37,17 @@ class CustomLoginView(LoginView):
             return redirect(reverse("home"))
         else:
             return redirect(reverse("login"))
+
+
+class CustomLogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect("home")
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("/")
 
 
 class CustomRegisterView(SuccessMessageMixin, CreateView):
