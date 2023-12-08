@@ -2,16 +2,27 @@
 
 {% block content %}
     {% load socialaccount %}
+    {% if not user.is_authenticated %}
     <form method="POST">
         {% csrf_token %}
         <fieldset>
             {{ form.as_p }}
+            <input type="hidden" name="next" value="{{ request.GET.next }}" />
+
         </fieldset>
         <button type="submit">Sign_in</button>
     </form>
-    {% if not user.is_authenticated %}
-        <h2>Google login</h2>
-        <a href='{% provider_login_url "google" %}?next=/'>Log in with google</a>
+
+    <p>
+        <a href="{% url 'password_reset' %}" class="btn btn-link">Forgot your password?</a> |
+        <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+    </p>
+
+        <h2>- OR -</h2>
+        <a href='{% provider_login_url "google" %}?next=/'>sing in with google
+
+
+        </a>
 
     {% else %}
         <p>You are signed in as {{ user.email }}</p>

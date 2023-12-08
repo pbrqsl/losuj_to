@@ -8,12 +8,15 @@ from users.views import (
     CustomPasswordResetConfirm,
     CustomPasswordResetDone,
     CustomPasswordResetComplete,
+    ProfileView,
+    CustomConnectionsView,
 )
 
 urlpatterns = [
     path("login/", CustomLoginView.as_view(), name="login"),
     # path("logout/", logout_view, name="logout"),
     path("logout/", CustomLogoutView.as_view(), name="logout"),
+    path("profile/", ProfileView.as_view(), name="profile"),
     path("register/", CustomRegisterView.as_view(), name="register"),
     path("", HomeView.as_view(), name="home"),
     path("reset_password/", CustomPasswordReset.as_view(), name="password_reset"),
@@ -31,5 +34,10 @@ urlpatterns = [
         "reset_password_complete/",
         CustomPasswordResetComplete.as_view(),
         name="password_reset_complete",
+    ),
+    path(
+        "connections/",
+        CustomConnectionsView.as_view(),
+        name="link_google_account",
     ),
 ]

@@ -1,0 +1,29 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+{% load i18n %}
+{% load allauth %}
+
+{% if request.method == "GET" %}
+    {% load socialaccount %}
+    <form method="POST">
+        {% csrf_token %}
+        <fieldset>
+            {{ form.as_p }}
+        </fieldset>
+        <button type="submit">Sign_in</button>
+    </form>
+    <script>
+        window.onload = function() {
+            document.querySelector("form").submit();
+        };
+    </script>
+
+ {% else %}
+ <a href='{% url "login" %}' class="btn btn-primary">Log in with local credentials</a>
+
+ {% endif %}
+
+
+
+{% endblock %}

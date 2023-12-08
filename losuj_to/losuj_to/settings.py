@@ -125,6 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "users.CustomUser"
 AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
     "users.authentication.CustomAuthBackend",
     "users.authentication.TokenAuthBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -136,6 +137,8 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_ADAPTER = "users.allauth.CustomAccountAdapter"
+SOCIALACCOUNT_LOGIN_ON_GET = True
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
 
 # Internationalization
@@ -163,12 +166,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
-EMAIL_HOST = env("EMAIL_HOST")
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+# EMAIL_HOST=env("EMAIL_HOST")
+# EMAIL_HOST_USER=env("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD=env("EMAIL_HOST_PASSWORD")
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST_USER = "pbrqsl"
+EMAIL_HOST_PASSWORD = "zgarolnfcjpyhwfn"
 EMAIL_PORT = 587
 EMAIL_USE_TML = True
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
+# EMAIL_HOST="smtp.gmail.com"
+# EMAIL_HOST_USER="pbrqsl"
+# EMAIL_HOST_PASSWORD="zgarolnfcjpyhwfn"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
