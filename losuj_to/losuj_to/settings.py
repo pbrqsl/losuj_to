@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import environ
+import os
 
 env = environ.Env()
 env.read_env()
@@ -67,7 +68,7 @@ ROOT_URLCONF = "losuj_to.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -134,11 +135,17 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION_EXPIRE_DAYS = 7
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_ADAPTER = "users.allauth.CustomAccountAdapter"
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_VERIFICATION_SUBJECT = "Activate your account on MySite"
+ACCOUNT_EMAIL_CONFIRMATION_SUBJECT = "Account verification"
+# ACCOUNT_EMAIL_VERIFICATION_TEMPLATE = 'account/confirmation_signup_message.txt'
+# ACCOUNT_EMAIL_CONFIRMATION_TEMPLATE = 'account/verification_signup_message.txt'
 
 
 # Internationalization

@@ -21,6 +21,8 @@ from users.views import (
     CustomAllAuthLoginView,
     CustomSocialSignupView,
     CustomConnectionsView,
+    CustomPasswordChangeView,
+    CustomPasswordChangeDoneView,
 )
 
 urlpatterns = [
@@ -37,6 +39,16 @@ urlpatterns = [
         "accounts/social/connections/",
         CustomConnectionsView.as_view(),
         name="socialaccount_connections",
+    ),
+    path(
+        "accounts/password/change/",
+        CustomPasswordChangeView.as_view(),
+        name="account_change_password",
+    ),
+    path(
+        "accounts/password/change_done/",
+        CustomPasswordChangeDoneView.as_view(),
+        name="password_change_done",
     ),
     path("accounts/", include("allauth.urls")),
 ]

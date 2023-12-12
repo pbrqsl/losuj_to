@@ -1,34 +1,33 @@
+from typing import Any
+
+from allauth.account.utils import has_verified_email
+from allauth.account.views import LoginView as AllAuthLoginView
+from allauth.account.views import SignupView as AllAuthSignupView
+from allauth.socialaccount.views import ConnectionsView
+from allauth.socialaccount.views import SignupView as SocialSignupView
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import (
     LoginView,
-    PasswordResetView,
-    PasswordResetDoneView,
-    PasswordResetConfirmView,
     PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
+    PasswordChangeView,
+    PasswordChangeDoneView,
 )
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.tokens import default_token_generator
-from django.http import HttpResponse
-from users.models import CustomUser
-from django.views.generic.edit import CreateView
 from django.contrib.messages.views import SuccessMessageMixin
-from users.forms import (
-    CustomUserCreationForm,
-    CustomPasswordResetForm,
-)
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse, reverse_lazy
+from django.views.generic import TemplateView, View
+from django.views.generic.edit import CreateView
 
-from django.views.generic import TemplateView
-from django.urls import reverse_lazy, reverse
-from django.shortcuts import redirect
-from django.contrib.auth import logout
-from django.views.generic import View
-from allauth.account.views import (
-    SignupView as AllAuthSignupView,
-    LoginView as AllAuthLoginView,
-)
-from allauth.socialaccount.views import SignupView as SocialSignupView, ConnectionsView
-
-from django.contrib import messages
+from users.forms import CustomPasswordResetForm, CustomUserCreationForm
+from users.mixins import EmailConfirmationMixin
+from users.models import CustomUser
 
 
 class CustomLoginView(LoginView):
@@ -51,15 +50,27 @@ class CustomLoginView(LoginView):
         else:
             return redirect(reverse("login"))
 
+    def post(self, request: HttpRequest, *args: str, **kwargs: Any):
+        print(request.user)
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form: AuthenticationForm) -> HttpResponse:
         user = form.get_user()
         next = self.request.POST["next"].strip('"') or "home".strip('"')
-        print(next)
         self.success_url = reverse(next)
-        print(self.success_url)
-        messages.success(self.request, f"Successfully signed in as {user}")
-        print(self.get_success_url())
-        return super().form_valid(form)
+        verified_email = has_verified_email(user, user.email)
+        if verified_email:
+            print(self.success_url)
+            messages.success(self.request, f"Successfully signed in as {user}")
+            return super().form_valid(form)
+        self.request.session["resend_email_user"] = user.email
+        messages.add_message(
+            self.request,
+            messages.ERROR,
+            "User's email has not been verified, cannot login. \
+                <a href='resend_confirmation_email/'>Resend confirmation email</a>",
+        )
+        return redirect("home")
 
     def get_success_url(self) -> str:
         return self.success_url
@@ -73,15 +84,21 @@ class CustomLogoutView(View):
         return redirect("home")
 
 
-def logout_view(request):
-    logout(request)
-    return redirect("/")
+class CustomSendEmailConfirmation(SuccessMessageMixin, EmailConfirmationMixin, View):
+    success_message = "Email sent!"
+
+    def get(self, request):
+        resend_email = request.session.get("resend_email_user") or request.user.email
+        # user = CustomUser.objects.get(email=resend_email)
+        user = get_object_or_404(CustomUser, email=resend_email)
+        self.send_verification_email(user)
+        return redirect("home")
 
 
-class CustomRegisterView(SuccessMessageMixin, CreateView):
+class CustomRegisterView(SuccessMessageMixin, EmailConfirmationMixin, CreateView):
     template_name = "users/register.html"
     form_class = CustomUserCreationForm
-    success_message = "Account created"
+    success_message = "Account created. Please check your email for verification link."
     success_url = reverse_lazy("home")
 
     class Meta:
@@ -93,10 +110,7 @@ class CustomRegisterView(SuccessMessageMixin, CreateView):
         self.object.user_token = token
         self.object.save()
 
-        user = authenticate(self.request, token=token)
-        if user:
-            login(self.request, user)
-
+        self.send_verification_email(self.object)
         return response
 
 
@@ -125,24 +139,44 @@ class CustomPasswordResetDone(PasswordResetDoneView):
         model = CustomUser
 
 
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = "users/password_change.html"
+
+
+class CustomPasswordChangeDoneView(PasswordChangeDoneView):
+    template_name = "users/password_change_done.html"
+
+
 class HomeView(TemplateView):
     template_name = "users/home.html"
 
 
+# @login_required
 class ProfileView(TemplateView):
     template_name = "users/profile.html"
 
+    def get_context_data(self, **kwargs: Any):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["is_local_user"] = False
+        if not user.is_authenticated:
+            return context
+        context["is_user_verified"] = has_verified_email(user, user.email)
+        if not user.user_token:
+            return context
+        print("aa")
+        context["is_local_user"] = True
+        return context
 
-test_view = CustomLoginView.as_view()
+
+# test_view = CustomLoginView.as_view()
 
 
 class CustomAllauthSignupView(AllAuthSignupView):
-    # form_class = CustomAuthSignupForm
     template_name = "users/register.html"
 
 
 class CustomAllAuthLoginView(AllAuthLoginView):
-    # form_class = CustomAuthSignupForm
     template_name = "users/login.html"
 
     def form_valid(self, form):
@@ -172,7 +206,7 @@ class CustomSocialSignupView(SuccessMessageMixin, SocialSignupView):
         email = request.POST["email"]
         if not CustomUser.objects.filter(email=email):
             return super().dispatch(request, *args, **kwargs)
-        print(CustomUser.objects.filter(email=email))
+
         messages.add_message(
             request,
             messages.ERROR,
@@ -191,3 +225,10 @@ class CustomSocialSignupView(SuccessMessageMixin, SocialSignupView):
 
 class CustomConnectionsView(ConnectionsView):
     template_name = "users/connections.html"
+
+
+class CheckIfMailConfirmed(View):
+    def get(self, request):
+        user = request.user
+        print(has_verified_email(user, user.email))
+        return redirect("home")

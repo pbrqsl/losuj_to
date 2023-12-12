@@ -1,0 +1,5 @@
+{% load account %}
+
+Click the following link to activate your account:
+
+{{ protocol }}://{{ domain }}{% url 'account_confirm_email' key=confirmation.key %}

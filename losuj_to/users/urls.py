@@ -1,15 +1,19 @@
 from django.urls import path
+
 from users.views import (
+    CheckIfMailConfirmed,
+    CustomConnectionsView,
     CustomLoginView,
     CustomLogoutView,
-    CustomRegisterView,
-    HomeView,
     CustomPasswordReset,
+    CustomPasswordResetComplete,
     CustomPasswordResetConfirm,
     CustomPasswordResetDone,
-    CustomPasswordResetComplete,
+    CustomRegisterView,
+    CustomSendEmailConfirmation,
+    HomeView,
     ProfileView,
-    CustomConnectionsView,
+    CustomPasswordChangeView,
 )
 
 urlpatterns = [
@@ -39,5 +43,20 @@ urlpatterns = [
         "connections/",
         CustomConnectionsView.as_view(),
         name="link_google_account",
+    ),
+    path(
+        "checkemail/",
+        CheckIfMailConfirmed.as_view(),
+        name="check_email",
+    ),
+    path(
+        "resend_confirmation_email/",
+        CustomSendEmailConfirmation.as_view(),
+        name="resend_confirmation_email",
+    ),
+    path(
+        "password_change/",
+        CustomPasswordChangeView.as_view(),
+        name="password_change_view",
     ),
 ]
