@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
-import environ
 import os
+from pathlib import Path
+
+import environ
 
 env = environ.Env()
 env.read_env()
@@ -141,9 +142,13 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_ADAPTER = "users.allauth.CustomAccountAdapter"
 SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
+SOCIALACCOUNT_ADAPTER = "users.adapters.CustomAdapter"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_VERIFICATION_SUBJECT = "Activate your account on MySite"
 ACCOUNT_EMAIL_CONFIRMATION_SUBJECT = "Account verification"
+
 # ACCOUNT_EMAIL_VERIFICATION_TEMPLATE = 'account/confirmation_signup_message.txt'
 # ACCOUNT_EMAIL_CONFIRMATION_TEMPLATE = 'account/verification_signup_message.txt'
 

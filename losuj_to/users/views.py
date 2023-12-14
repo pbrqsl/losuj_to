@@ -11,12 +11,12 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import (
     LoginView,
+    PasswordChangeDoneView,
+    PasswordChangeView,
     PasswordResetCompleteView,
     PasswordResetConfirmView,
     PasswordResetDoneView,
     PasswordResetView,
-    PasswordChangeView,
-    PasswordChangeDoneView,
 )
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpRequest, HttpResponse
@@ -24,7 +24,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView, View
 from django.views.generic.edit import CreateView
-
 from users.forms import CustomPasswordResetForm, CustomUserCreationForm
 from users.mixins import EmailConfirmationMixin
 from users.models import CustomUser
@@ -194,11 +193,6 @@ class CustomAllAuthLoginView(AllAuthLoginView):
 
 class CustomSocialSignupView(SuccessMessageMixin, SocialSignupView):
     template_name = "users/social_signup.html"
-    # def dispatch(self, request, *args, **kwargs):
-    #     print('something')
-    #     print(request)
-    #     return redirect('home')
-    #     return super().dispatch(request, *args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
         if not request.method == "POST":

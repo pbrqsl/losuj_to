@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db import models
 from users.managers import CustomUserManager
 
 # Create your models here.
@@ -12,6 +12,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     user_token = models.CharField(max_length=255, blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    social_account = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
