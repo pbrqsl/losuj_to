@@ -3,12 +3,10 @@ from typing import Any
 from allauth.account.utils import has_verified_email
 from allauth.account.views import LoginView as AllAuthLoginView
 from allauth.account.views import SignupView as AllAuthSignupView
-from allauth.socialaccount.views import ConnectionsView
 from allauth.socialaccount.views import SignupView as SocialSignupView
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import (
     LoginView,
     PasswordChangeDoneView,
@@ -19,12 +17,17 @@ from django.contrib.auth.views import (
     PasswordResetView,
 )
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import TemplateView, View
+from django.views.generic import FormView, TemplateView, View
 from django.views.generic.edit import CreateView
-from users.forms import CustomPasswordResetForm, CustomUserCreationForm
+from users.forms import (
+    BultUserRegistrationForm,
+    CustomPasswordResetForm,
+    CustomUserCreationForm,
+)
 from users.mixins import EmailConfirmationMixin
 from users.models import CustomUser
 
@@ -104,13 +107,20 @@ class CustomRegisterView(SuccessMessageMixin, EmailConfirmationMixin, CreateView
         model = CustomUser
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        token = default_token_generator.make_token(self.object)
-        self.object.user_token = token
-        self.object.save()
+        # token = default_token_generator.make_token(self.object)
+        # self.object.user_token = token
+        print(self.object)
+        print(form.cleaned_data)
+        user = CustomUser.objects.create_user(
+            email=form.cleaned_data["email"],
+            password=form.cleaned_data["password1"],
+        )
+        user.save()
+        # response = super().form_valid(form)
 
-        self.send_verification_email(self.object)
-        return response
+        self.send_verification_email(user)
+        # return response
+        return redirect("home")
 
 
 class CustomPasswordReset(PasswordResetView):
@@ -214,11 +224,12 @@ class CustomSocialSignupView(SuccessMessageMixin, SocialSignupView):
             <Link with Social App!> option in profile view \
             to configure login with google.",
         )
-        return super().dispatch(request, *args, **kwargs)
+        return redirect("home")
+        # return super().dispatch(request, *args, **kwargs)
 
 
-class CustomConnectionsView(ConnectionsView):
-    template_name = "users/connections.html"
+# class CustomConnectionsView(ConnectionsView):
+#     template_name = "users/connections.html"
 
 
 class CheckIfMailConfirmed(View):
@@ -226,3 +237,43 @@ class CheckIfMailConfirmed(View):
         user = request.user
         print(has_verified_email(user, user.email))
         return redirect("home")
+
+
+class BulkUserRegistration(FormView):
+    form_class = BultUserRegistrationForm
+    # template_name = 'users/bulk_registration_confirm.html'
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        print("form_valid starts")
+        new_users = []
+        print(form.cleaned_data["new_users"])
+        print(type(form.cleaned_data["new_users"]))
+        for row in form.cleaned_data["new_users"]:
+            email = row.split(",")[0]
+            print(f"row: {email}")
+            if CustomUser.objects.filter(email=email):
+                print("user exists")
+                continue
+            try:
+                user = CustomUser.objects.create_user(email=email, password=None)
+                new_users.append(user)
+                # user.save()
+                print("user created")
+            except ValidationError:
+                pass
+        print(new_users)
+
+        return render(
+            self.request,
+            "users/bulk_registration_confirm.html",
+            {"new_users": new_users},
+        )
+
+
+class BulkUserRegistrationInput(TemplateView):
+    template_name = "users/bulk_registration.html"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        form = BultUserRegistrationForm()
+
+        return render(request, self.template_name, context={"form": form})

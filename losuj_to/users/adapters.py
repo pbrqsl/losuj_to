@@ -1,5 +1,7 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 
+# from allauth.account.adapter import generate_emailconfirmation_key
+
 
 class CustomAdapter(DefaultSocialAccountAdapter):
     # def pre_social_login(self, request, sociallogin):
@@ -21,9 +23,11 @@ class CustomAdapter(DefaultSocialAccountAdapter):
         Saves a newly signed up social login. In case of auto-signup,
         the signup form is not available.
         """
-        # u = sociallogin.user
-        # u.set_unusable_password()
-        # u.social_account = True
+        u = sociallogin.user
+        u.set_unusable_password()
+        u.social_account = True
+        # confiramtion_key = generate_emailconfirmation_key(u)
+        # print(confiramtion_key)
 
         sociallogin.save(request)
         return None

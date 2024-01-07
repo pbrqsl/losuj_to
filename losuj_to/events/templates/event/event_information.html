@@ -1,0 +1,43 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+<h1>Event details </h1>
+<div id="form-container">
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Go!</button>
+    </form>
+    <p>Note: If no drawing date is provided, the drawing will be initiated by the owner at a later stage.</p>
+</div>
+
+<!-- <button id="submit-btn" onclick="submitForm()" disabled>Next</button> -->
+
+<script>
+    function updateSubmitButtonState() {
+        const submitBtn = document.getElementById('submit-btn');
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        const areAllInputsValid = Array.from(formInputs).every(input => input.checkValidity());
+
+        if (areAllInputsValid) {
+            submitBtn.classList.add('active');
+            submitBtn.removeAttribute('disabled');
+        } else {
+            submitBtn.classList.remove('active');
+            submitBtn.setAttribute('disabled', 'disabled');
+        }
+    }
+
+    function submitForm() {
+        const form = document.querySelector('form');
+        // Your submission logic here, e.g., form.submit();
+    }
+
+    // Event listener for input validation
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('input', updateSubmitButtonState);
+    });
+</script>
+
+{% endblock %}

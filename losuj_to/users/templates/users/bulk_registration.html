@@ -1,0 +1,172 @@
+{% extends 'website/base.html' %}
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    .form-row {
+        margin-bottom: 10px;
+    }
+
+    .add-row-btn,
+    .remove-row-btn {
+        cursor: pointer;
+        color: green;
+        margin-left: 5px;
+    }
+
+    .remove-row-btn:hover {
+        color: red;
+    }
+
+    .invalid-email {
+        color: red;
+    }
+
+    #submit-btn {
+        cursor: not-allowed;
+        background-color: #ddd;
+        color: #666;
+    }
+
+    #submit-btn.active {
+        cursor: pointer;
+        background-color: #4caf50;
+        color: #fff;
+    }
+</style>
+</head>
+
+<body>
+
+    <div id="form-container">
+        <form action="{% url 'bulk_registration' %}" method="post">
+            {% csrf_token %}
+            <div class="form-row">
+                <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">
+                <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
+                <span class="add-row-btn" onclick="addRow()">(+)</span>
+                <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
+            </div>
+        </form>
+    </div>
+
+    <button id="submit-btn" onclick="submitForm()" disabled>Submit</button>
+
+    <script>
+        function addRow() {
+            const lastRow = document.querySelector('.form-row:last-child');
+            const newRow = lastRow.cloneNode(true);
+
+            const inputs = newRow.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('invalid-email');
+            });
+
+            document.getElementById('form-container').appendChild(newRow);
+
+            // Hide remove button in the first row
+            lastRow.querySelector('.remove-row-btn').style.display = 'none';
+
+            // Show remove button in the newly added row
+            newRow.querySelector('.remove-row-btn').style.display = 'inline';
+
+            newRow.querySelector('input').focus();
+            updateSubmitButtonState();
+        }
+
+        function removeRow(button) {
+            const row = button.parentNode;
+            const formContainer = document.getElementById('form-container');
+
+            if (formContainer.childElementCount > 1) {
+                formContainer.removeChild(row);
+                updateSubmitButtonState();
+            }
+        }
+
+        function checkTab(event) {
+            if (event.key === 'Tab' && !event.shiftKey) {
+                const focusedInput = event.target;
+                const formRows = document.querySelectorAll('.form-row');
+                const lastRow = formRows[formRows.length - 1];
+                const lastRowInputs = lastRow.querySelectorAll('input');
+
+                if (focusedInput === lastRowInputs[lastRowInputs.length - 1]) {
+                    addRow();
+                    event.preventDefault();
+                }
+            }
+        }
+
+        function validateEmail(event) {
+            const emailInput = event.target;
+            const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+
+            if (!isValidEmail) {
+                emailInput.classList.add('invalid-email');
+            } else {
+                const allEmailInputs = document.querySelectorAll('input[name^="email"]');
+                const isDuplicate = Array.from(allEmailInputs).some(input => input !== emailInput && input.value.trim() === emailInput.value.trim());
+
+                if (isDuplicate) {
+                    emailInput.classList.add('invalid-email');
+                } else {
+                    emailInput.classList.remove('invalid-email');
+                }
+            }
+
+            updateSubmitButtonState();
+        }
+
+        function updateSubmitButtonState() {
+            const submitBtn = document.getElementById('submit-btn');
+            const emailInputs = document.querySelectorAll('input[name^="email"]');
+            const areAllEmailsValid = Array.from(emailInputs).every(input => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim()));
+
+            if (areAllEmailsValid) {
+                submitBtn.classList.add('active');
+                submitBtn.removeAttribute('disabled');
+            } else {
+                submitBtn.classList.remove('active');
+                submitBtn.setAttribute('disabled', 'disabled');
+            }
+        }
+
+        function submitForm() {
+            const formRows = document.querySelectorAll('.form-row');
+            const formData = [];
+
+            formRows.forEach(row => {
+                const emailInput = row.querySelector('input[name^="email"]');
+                const nameInput = row.querySelector('input[name^="name"]');
+
+                // Skip empty rows
+                if (emailInput.value.trim() !== '') {
+                    formData.push(`${emailInput.value},${nameInput.value}`);
+                }
+            });
+
+            // Join the formData array into a single string with line breaks
+            const formattedData = formData.join('\n');
+
+            // Create a hidden textarea element and append it to the form
+            const textarea = document.createElement('textarea');
+            textarea.name = 'new_users';
+            textarea.value = formattedData;
+            textarea.style.display = 'none';
+
+            const form = document.querySelector('form');
+            form.appendChild(textarea);
+
+            // Submit the form
+            form.submit();
+        }
+    </script>
+
+</body>
+
+</html>
+{% endblock %}

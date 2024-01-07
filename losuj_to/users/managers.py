@@ -1,4 +1,5 @@
 from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.tokens import default_token_generator
 
 
 class CustomUserManager(BaseUserManager):
@@ -7,8 +8,15 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("The email is mandatory")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save()
+
+        if not password:
+            user.set_unusable_password()
+        else:
+            user.set_password(password)
+
+        token = default_token_generator.make_token(user)
+        user.user_token = token
+        # user.save()
 
         return user
 
