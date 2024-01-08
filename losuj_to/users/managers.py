@@ -16,7 +16,7 @@ class CustomUserManager(BaseUserManager):
 
         token = default_token_generator.make_token(user)
         user.user_token = token
-        # user.save()
+        user.save()
 
         return user
 

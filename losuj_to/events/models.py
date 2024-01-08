@@ -19,6 +19,9 @@ class Event(models.Model):
     price_limit = models.IntegerField(null=True)
     price_currency = models.CharField(max_length=3, choices=Currency.choices)
     active = models.BooleanField(default=True)
+    ancestor = models.ForeignKey(
+        "self", blank=True, null=True, on_delete=models.CASCADE
+    )
 
     def __str__(self) -> str:
         return self.event_name

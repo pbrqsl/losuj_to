@@ -1,11 +1,14 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from events.models import Event
 
 
 class EventInformationForm(forms.Form):
     event_name = forms.CharField(max_length=100, required=True, label="Event Name")
-    # event_location = forms.CharField(max_length=255, required=False, label='Event Location')
+    event_location = forms.CharField(
+        max_length=255, required=False, label="Event Location"
+    )
     event_date = forms.DateField(
         required=True,
         widget=forms.DateInput(attrs={"type": "date"}),
@@ -28,6 +31,14 @@ class EventInformationForm(forms.Form):
         widget=forms.Select(),
         label="Price Limit currency",
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        event_date = cleaned_data.get("event_date")
+        draw_date = cleaned_data.get("draw_date")
+        if draw_date and draw_date.date() >= event_date:
+            raise ValidationError("Draw date must occur before the event date.")
+        return cleaned_data
 
 
 class EventInformationForm1(forms.ModelForm):
