@@ -115,7 +115,7 @@ class CustomRegisterView(SuccessMessageMixin, EmailConfirmationMixin, CreateView
             email=form.cleaned_data["email"],
             password=form.cleaned_data["password1"],
         )
-        user.save()
+        # user.save()
         # response = super().form_valid(form)
 
         self.send_verification_email(user)

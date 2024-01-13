@@ -1,6 +1,9 @@
+from typing import Any
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
+from django.forms import HiddenInput
 from events.models import Event
 
 
@@ -41,37 +44,62 @@ class EventInformationForm(forms.Form):
         return cleaned_data
 
 
-class EventInformationForm1(forms.ModelForm):
-    class Meta:
-        model = Event
-        fields = ["event_name", "event_date"]
+# class EventInformationForm1(forms.ModelForm):
+#     class Meta:
+#         model = Event
+#         fields = ["event_name", "event_date"]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["event_name"].label = "Event Name"
-        self.fields["date"].label = "Gift echange date"
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields["event_name"].label = "Event Name"
+#         self.fields["date"].label = "Gift echange date"
 
-    widgets = {
-        "date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-    }
+#     widgets = {
+#         "date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+#     }
 
 
 class BulkUserRegistrationForm(forms.Form):
     participants = forms.CharField(
-        max_length=1024, label="User data", required=True, widget=forms.Textarea
+        max_length=1024,
+        label="User data",
+        required=True,
+        widget=forms.Textarea,
+        show_hidden_initial=True,
     )
 
+    def clean(self) -> dict[str, Any]:
+        data = self.cleaned_data
+        print("running clean")
+        return data
+
     def clean_participants(self):
+        print("running clean_participants")
         print(self.cleaned_data["participants"])
         data = self.cleaned_data["participants"]
+        print(data)
         data_export = []
         rows = data.split("\n")
         validator = EmailValidator()
-        print(f"printing rows:{rows}")
-        print(len(rows))
+        # print(f"printing rows:{rows}")
+        # print(len(rows))
+        emails = []
+        names = []
         for row in rows:
             email = row.split(",")[0].rstrip()
             name = row.split(",")[1].rstrip()
+
+            if email in emails:
+                print("doubled email")
+                raise ValidationError("Emails cannot repeat.")
+            if name in names:
+                print("doubled name")
+                raise ValidationError("Name value cannot repeat")
+            emails.append(email)
+            if name != "":
+                names.append(name)
+            print(emails)
+            print(names)
             try:
                 validator(email)
                 print(f"{email} validated")
@@ -79,4 +107,19 @@ class BulkUserRegistrationForm(forms.Form):
             except Exception as e:
                 print(e)
                 pass
+
         return data_export
+
+
+class ExcludeParticipantsForm(forms.Form):
+    class Meta:
+        # model = MyModel
+        widgets = {
+            "any_field": HiddenInput(),
+        }
+
+    def clean(self):
+        print(">>clean")
+        cleaned_data = super().clean
+        print(cleaned_data.__dict__)
+        return cleaned_data

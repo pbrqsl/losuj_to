@@ -36,6 +36,10 @@ class Draw(models.Model):
 class Participant(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, null=True, blank=True)
+
+    class Meta:
+        unique_together = [("event", "name"), ("event", "user")]
 
 
 class Exclusion(models.Model):

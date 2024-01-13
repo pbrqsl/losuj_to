@@ -1,0 +1,271 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+  <h2>Event Information</h2>
+  <p>Event Name: {{ event_data.event_name }}</p>
+
+  {% if event_data.event_location != '' %}
+  <p>Event Location: {{ event_data.event_location }}</p>
+  {% endif %}
+
+
+  <h2>Excludes</h2>
+
+  <style>
+    .container {
+        display: grid;
+        width: 70%;
+    }
+
+    .left-column {
+        grid-column: 1;
+        grid-row: 1;
+        width: 100%;
+        align-items: center;
+
+        padding-right: 40px;
+    }
+
+    .right-column {
+        grid-column: 2;
+        grid-row: 1;
+        align-items: center;
+
+        padding-left: 40px;
+        padding-right: 100px;
+
+    }
+
+    .drop-container {
+        width: 500px;
+        height: 50px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+        position: relative; /* Required for positioning the label */
+    }
+
+    .drop-container::before {
+        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
+        position: absolute;
+        top: 50%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+        color: #ccc;
+        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
+        font-family: Arial, Helvetica, sans-serif ;
+    }
+
+    .pool-container {
+        width: 100%;
+        height: 80px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+    }
+
+    .draggable {
+        cursor: move;
+        display: inline-block;
+        margin: 5px;
+        padding: 5px;
+        border: 1px solid #000;
+        font-family: Arial, Helvetica, sans-serif;
+        border-radius: 10px;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .delete-button {
+        cursor: pointer;
+        color: red;
+        margin-left: 5px;
+    }
+</style>
+
+
+<body>
+    <div class="container">
+
+        <div class="right-column">
+            <div id="pool_container" class="pool-container" ondrop="drop(event)" ondragover="allowDrop(event)">
+                {% csrf_token %}
+                {% if participants %}
+                    {% for participant in participants %}
+                <div id="draggable{{forloop.counter}}" class="draggable" draggable="true" ondragstart="drag(event)">{{participant.1}}</div>
+
+                {% endfor %}
+
+                {% endif %}
+            </div>
+        </div>
+        <div class="left-column">
+            {% csrf_token %}
+                {% if participants %}
+                    {% for participant in participants %}
+            <div id="targetContainer1" class="drop-container" ondrop="drop(event)" ondragover="allowDrop(event)" data-label="{{participant.1}}"></div><br>
+                {% endfor %}
+                {{forloop.counter}}
+            {% endif %}
+        </div>
+
+
+
+    </div>
+    <form id="excludesForm" method="POST">
+        {% csrf_token %}
+        <!-- <button type="submit">Submit</button> -->
+        <button id="submit-btn" onclick="submitForm()">Continue</button>
+    </form>
+
+
+    </div>
+
+
+
+    <script>
+        var sourceContainer;
+        var excludes_dictionary = {}
+
+        window.onload = function () {
+            var poolContainer = document.getElementById("pool_container");
+            sortElements(poolContainer);
+        };
+
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            sourceContainer = event.currentTarget.parentElement; // Store the source container
+            event.dataTransfer.setData("text", event.target.id);
+
+
+        }
+        function drop(event) {
+            event.preventDefault();
+            var data = event.dataTransfer.getData("text");
+            var draggedElement = document.getElementById(data);
+            var dropContainer = event.target;
+            var poolContainer = document.getElementById("pool_container");
+            var poolContainerChildCount = document.getElementById("pool_container").childElementCount
+            console.log("(drop, sourceContainer):",sourceContainer);
+            console.log("(drop, dropContainer):",dropContainer);
+            console.log("(drop, drageElement):", draggedElement)
+            console.log("(drop, drageElement.textContent):", draggedElement.textContent)
+
+
+            // Check if the drop target is a container
+
+            if (dropContainer.classList.contains("drop-container") && sourceContainer.classList.contains("pool-container")) {
+                var existingElement = Array.from(dropContainer.children).find(function (child) {
+                    console.log("(drop, child.textContent):", child.textContent)
+                    console.log("(drop, draggedElement.textContent):", draggedElement.textContent)
+                    return child.textContent.replace("X","").trim() === draggedElement.textContent.trim();
+                    });
+                console.log("(drop, dropContainer.getAttribute('data-label')):", dropContainer.getAttribute("data-label"))
+                var isMatchedLabel = draggedElement.textContent === dropContainer.getAttribute("data-label")
+
+                console.log(existingElement);
+                console.log(dropContainer.getAttribute("data-label"));
+                console.log(draggedElement.textContent === dropContainer.getAttribute("data-label"));
+
+                if (existingElement || isMatchedLabel) {
+                    console.log("nope");
+                }
+                else {
+
+                    console.log(dropContainer);
+                    console.log(draggedElement);
+                    dropContainer.appendChild(draggedElement);
+
+
+                    if (sourceContainer.classList.contains("pool-container")) {
+                        sourceContainer.appendChild(draggedElement.cloneNode(true));
+                    }
+                    var deleteButton = document.createElement("span");
+                    deleteButton.className = "delete-button";
+                    deleteButton.textContent = "X";
+                    deleteButton.onclick = function() {
+                        // Remove the element from both drop container and source container
+
+                        dropContainer.removeChild(draggedElement);
+
+                        var data_label = dropContainer.getAttribute("data-label");
+                        var value = draggedElement.textContent.replace("X","");
+
+                        console.log("data_label", data_label);
+                        console.log("value", value);
+                        var index = excludes_dictionary[data_label].indexOf(value);
+                        excludes_dictionary[data_label].splice(index, 1);
+                        console.log(index)
+                        //sourceContainer.removeChild(draggedElement);
+
+                    };
+                    draggedElement.appendChild(deleteButton);
+
+                    console.log("(drop, dropContainer):", dropContainer);
+                    console.log("(drop, sourceCountainer):", sourceContainer);
+
+                    var dropContainerName = dropContainer.getAttribute("data-label");
+                    if(!excludes_dictionary[dropContainerName]) {
+                        excludes_dictionary[dropContainerName] = [];
+                    }
+                    excludes_dictionary[dropContainerName].push(draggedElement.textContent.replace("X","").trim());
+                    console.log(excludes_dictionary);
+                }
+                sortElements(poolContainer);
+
+                //sourceContainer = null;
+
+                console.log('----------------------------------------------')
+            }
+
+        }
+        function sortElements(container) {
+            var elements = Array.from(container.children);
+
+            elements.sort(function (a, b) {
+                var textA = a.textContent.trim().toLowerCase();
+                var textB = b.textContent.trim().toLowerCase();
+                return textA.localeCompare(textB);
+            });
+
+            container.innerHTML = ""; // Clear the container
+            elements.forEach(function (element) {
+                container.appendChild(element);
+            });
+        }
+
+
+        function submitForm() {
+            Object.keys(excludes_dictionary).forEach(function (key) {
+                console.log(excludes_dictionary[key])
+                if (excludes_dictionary[key].length == 0) {
+                    delete excludes_dictionary[key];
+
+
+                }
+
+            });
+
+
+            var form = document.getElementById("excludesForm");
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "excludes";
+            input.value = JSON.stringify(excludes_dictionary);
+            form.appendChild(input);
+
+            console.log(form)
+
+            // Submit the form
+            form.submit();
+        }
+    </script>
+
+{% endblock %}

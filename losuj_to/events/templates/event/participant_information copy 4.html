@@ -54,7 +54,6 @@
 
     <div id="form-container">
         <form method="post">
-
             {% csrf_token %}
             {% if participants %}
                 {% for participant in participants %}
@@ -71,19 +70,24 @@
                     </div>
                 {% endfor %}
             {% else %}
-            {% for participant in rows_range %}
+            <div class="form-row">
+                <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">
+                <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
+                <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
 
-                    <div class="form-row">
-                        <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">
-                        <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
-                        <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
-                        {% if forloop.counter == rows_range|length %}
-                        <span class="add-row-btn" onclick="addRow()">(+)</span>
-                        {% endif %}
+            </div>
+            <div class="form-row">
+                <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">
+                <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
+                <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
 
-
-                    </div>
-                {% endfor %}
+            </div>
+            <div class="form-row">
+                <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">
+                <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
+                <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
+                <span class="add-row-btn" onclick="addRow()">(+)</span>
+            </div>
             {% endif %}
         </form>
     </div>
