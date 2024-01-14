@@ -62,7 +62,7 @@
                     <div class="form-row">
                         <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)" value="{{participant.0}}">
                         <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)" value="{{participant.1}}">
-                        <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
+                        <span class="remove-row-btn" onclick="removeRow(this)" style="display: yes;">(-)</span>
                         {% if forloop.counter == participants|length %}
                         <span class="add-row-btn" onclick="addRow()">(+)</span>
                         {% endif %}

@@ -1,3 +1,4 @@
+import ast
 import json
 from typing import Any
 
@@ -11,21 +12,20 @@ from django.shortcuts import redirect, render
 from django.views.generic import FormView
 from events.forms import (
     BulkUserRegistrationForm,
-    EventInformationForm,
+    EventCreateForm,
     ExcludeParticipantsForm,
 )
 from events.models import Event, Exclusion, Participant
 from users.models import CustomUser
 
 
-class EventInformationView(LoginRequiredMixin, FormView):
-    form_class = EventInformationForm
+class EventCreateView(LoginRequiredMixin, FormView):
+    form_class = EventCreateForm
     success_url = "event_participants"
     template_name = "event/event_information.html"
 
     def form_valid(self, form):
         event_data = form.cleaned_data
-        # Store event data in session
         form.cleaned_data["draw_date"] = (
             event_data.get("draw_date").strftime("%Y-%m-%dT%H:%M:%S")
             if event_data.get("draw_date")
@@ -64,8 +64,6 @@ class EventInformationView(LoginRequiredMixin, FormView):
 
         email = user.email or None
 
-        # print(self.request.session.__dict__)
-
         if has_verified_email(user, email):
             return super().get(request, *args, **kwargs)
         messages.add_message(
@@ -77,17 +75,28 @@ class EventInformationView(LoginRequiredMixin, FormView):
         return redirect("home")
 
 
-class EventParticipantsInformationView(FormView, SuccessMessageMixin):
+class EventParticipantsCreateView(FormView, SuccessMessageMixin):
     template_name = "event/participant_information.html"
     form_class = BulkUserRegistrationForm
     success_url = "event_excludes"
     success_message = "yup"
     num_rows = 2
 
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any):
         form = self.form_class
         event_data = self.request.session["event_data"]
         print(self.request.session.__dict__)
+        if request.GET.get("participants"):
+            participants = ast.literal_eval(request.GET.get("participants"))
+            return render(
+                self.request,
+                self.template_name,
+                context={
+                    "form": form,
+                    "event_data": event_data,
+                    "participants": participants,
+                },
+            )
 
         return render(
             request,
@@ -127,7 +136,6 @@ class EventParticipantsInformationView(FormView, SuccessMessageMixin):
 
     def form_invalid(self, form):
         event_data = self.request.session["event_data"]
-        # print(f'form.cleaned_data: {form.data['participants']}')
         raw_participants = form.data["participants"].split("\n")
         participants = []
         for participant in raw_participants:
@@ -136,10 +144,6 @@ class EventParticipantsInformationView(FormView, SuccessMessageMixin):
             name = participant.split(",")[1].rstrip()
             participants.append([email, name])
 
-        print(participants)
-        # print(self.request.session["participant_data"])
-        # print(self.request.session["event_data"])
-        # return redirect(self.success_url)
         return render(
             self.request,
             self.template_name,
@@ -151,7 +155,7 @@ class EventParticipantsInformationView(FormView, SuccessMessageMixin):
         )
 
 
-class EventExcludesInformation(FormView, SuccessMessageMixin):
+class EventExcludesCreate(FormView, SuccessMessageMixin):
     template_name = "event/excludes_information.html"
     form_class = ExcludeParticipantsForm
     success_url = "home"
@@ -175,6 +179,8 @@ class EventExcludesInformation(FormView, SuccessMessageMixin):
         )
 
     def form_valid(self, form):
+        if self.request.POST["excludes"] == "{}":
+            return redirect(self.success_url)
         pariticipant_list = self.request.session["participant_data"]
         exclude_dict = json.loads(self.request.POST["excludes"])
         event = Event.objects.get(id=self.request.session["event_data"]["event_id"])
@@ -182,14 +188,9 @@ class EventExcludesInformation(FormView, SuccessMessageMixin):
         for participant in pariticipant_list:
             participant_dict[participant[1]] = participant[0]
 
-        print(participant_dict)
-        print(type(exclude_dict))
         for exclude in exclude_dict:
-            print(exclude)
-            # user = CustomUser.objects.get(email=participant_dict[exclude])
             participant = Participant.objects.get(name=exclude, event=event)
             for excluded in exclude_dict[exclude]:
-                # user_excluded = CustomUser.objects.get(email=participant_dict[excluded])
                 excluded_participant = Participant.objects.get(
                     name=excluded, event=event
                 )
@@ -199,5 +200,4 @@ class EventExcludesInformation(FormView, SuccessMessageMixin):
                     participant=participant,
                     excluded_participant=excluded_participant,
                 )
-            print("----")
         return redirect(self.success_url)

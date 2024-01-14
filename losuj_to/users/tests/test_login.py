@@ -66,9 +66,7 @@ class TestLoginView(TestCase):
         )
 
         users = get_user_model().objects.all()
-        common = (
-            True if "This password is too common" in str(response.content) else False
-        )
+        common = "This password is too common" in str(response.content)
         self.assertEqual(users.count(), 0)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(common)

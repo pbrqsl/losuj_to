@@ -6,20 +6,31 @@
 
   {% if event_data.event_location != '' %}
   <p>Event Location: {{ event_data.event_location }}</p>
+
   {% endif %}
 
+  <p>Participants:</p>
+  {% for participant in participants %}
+  [{{participant.1}}]
 
-  <h2>Excludes</h2>
+  {% endfor %}
+  <p><a href='{% url "event_participants" %}?participants={{participants}}'>add paticipants</a></p>
 
-  <style>
+
+<style>
     .container {
+        display: grid;
+        width: 70%;
+        display: none;
+    }
+    .container-unhidden {
         display: grid;
         width: 70%;
     }
 
     .left-column {
         grid-column: 1;
-        grid-row: 1;
+        grid-row: 2;
         width: 100%;
         align-items: center;
 
@@ -28,7 +39,7 @@
 
     .right-column {
         grid-column: 2;
-        grid-row: 1;
+        grid-row: 2;
         align-items: center;
 
         padding-left: 40px;
@@ -88,8 +99,18 @@
 
 
 <body>
-    <div class="container">
+    <form id="unhide_form">
+        <label>
+            <input type="radio" name="options" value="hide" checked> Don't set exclusions
+        </label>
+        <label>
+            <input type="radio" name="options" value="unhide"> Set exclusions
+        </label>
+    </form>
 
+    <div class="container" id="grid_container">
+        {% if participants|length > 3 %}
+        <h2>Exclusions</h2>
         <div class="right-column">
             <div id="pool_container" class="pool-container" ondrop="drop(event)" ondragover="allowDrop(event)">
                 {% csrf_token %}
@@ -113,7 +134,9 @@
         </div>
 
 
-
+        {% else %}
+        <h2>I'm sorry, the number of participants is too low to set exclusions. There has to be at least 4 participants to set exclusions.</h2>
+        {% endif %}
     </div>
     <form id="excludesForm" method="POST">
         {% csrf_token %}
@@ -135,6 +158,21 @@
             sortElements(poolContainer);
         };
 
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.getElementById("unhide_form");
+            var optionRadioButtons = form.querySelectorAll('input[name="options"]');
+            var idOneSection = document.getElementById("grid_container");
+
+            // Add event listener to radio buttons
+            optionRadioButtons.forEach(function (radioButton) {
+                radioButton.addEventListener("change", function () {
+                    // Check if Option 2 is selected and show/hide the section accordingly
+                    console.log("switch")
+                    idOneSection.classList.toggle("container-unhidden", radioButton.value !== "hide");
+                });
+            });
+        });
+
 
         function allowDrop(event) {
             event.preventDefault();
@@ -152,12 +190,17 @@
             var draggedElement = document.getElementById(data);
             var dropContainer = event.target;
             var poolContainer = document.getElementById("pool_container");
-            var poolContainerChildCount = document.getElementById("pool_container").childElementCount
+            var poolContainerChildCount = document.getElementById("pool_container").childElementCount;
+            var mainContainer = document.getElementById("grid_container");
+
             console.log("(drop, sourceContainer):",sourceContainer);
             console.log("(drop, dropContainer):",dropContainer);
             console.log("(drop, drageElement):", draggedElement)
             console.log("(drop, drageElement.textContent):", draggedElement.textContent)
-
+            console.log("main container",mainContainer)
+            if (mainContainer.classList.contains("container-unhidden")){
+                console.log('unhidden')
+            }
 
             // Check if the drop target is a container
 
@@ -247,23 +290,28 @@
                 console.log(excludes_dictionary[key])
                 if (excludes_dictionary[key].length == 0) {
                     delete excludes_dictionary[key];
-
-
                 }
 
             });
 
-
+            var mainContainer = document.getElementById("container");
             var form = document.getElementById("excludesForm");
             var input = document.createElement("input");
+            var mainContainer = document.getElementById("grid_container");
+
             input.type = "hidden";
             input.name = "excludes";
-            input.value = JSON.stringify(excludes_dictionary);
+
+
+           if (mainContainer.classList.contains("container-unhidden")) {
+                input.value = JSON.stringify(excludes_dictionary);
+
+            } else {
+                input.value = "{}";
+            }
+
             form.appendChild(input);
-
             console.log(form)
-
-            // Submit the form
             form.submit();
         }
     </script>

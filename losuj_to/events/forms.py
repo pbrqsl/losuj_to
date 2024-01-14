@@ -7,7 +7,7 @@ from django.forms import HiddenInput
 from events.models import Event
 
 
-class EventInformationForm(forms.Form):
+class EventCreateForm(forms.Form):
     event_name = forms.CharField(max_length=100, required=True, label="Event Name")
     event_location = forms.CharField(
         max_length=255, required=False, label="Event Location"
@@ -23,12 +23,6 @@ class EventInformationForm(forms.Form):
         label="Date of Drawing Names",
     )
     price_limit = forms.IntegerField(required=False, label="Price Limit for the Gift")
-    # price_currency = forms.ModelChoiceField(
-    #     qyeryset=Event.Currency.choices,
-    #     widget=forms.Select(),
-    #     label='Price Limit currency'
-
-    # )
     price_currency = forms.ChoiceField(
         choices=Event.Currency.choices,
         widget=forms.Select(),
@@ -42,21 +36,6 @@ class EventInformationForm(forms.Form):
         if draw_date and draw_date.date() >= event_date:
             raise ValidationError("Draw date must occur before the event date.")
         return cleaned_data
-
-
-# class EventInformationForm1(forms.ModelForm):
-#     class Meta:
-#         model = Event
-#         fields = ["event_name", "event_date"]
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.fields["event_name"].label = "Event Name"
-#         self.fields["date"].label = "Gift echange date"
-
-#     widgets = {
-#         "date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-#     }
 
 
 class BulkUserRegistrationForm(forms.Form):
@@ -81,8 +60,6 @@ class BulkUserRegistrationForm(forms.Form):
         data_export = []
         rows = data.split("\n")
         validator = EmailValidator()
-        # print(f"printing rows:{rows}")
-        # print(len(rows))
         emails = []
         names = []
         for row in rows:
