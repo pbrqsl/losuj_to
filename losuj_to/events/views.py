@@ -80,7 +80,8 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin):
     form_class = BulkUserRegistrationForm
     success_url = "event_excludes"
     success_message = "yup"
-    num_rows = 2
+    num_rows = 3
+    # exclude = "participants"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any):
         form = self.form_class
@@ -151,6 +152,7 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin):
                 "form": form,
                 "event_data": event_data,
                 "participants": participants,
+                "rows_range": range(self.num_rows),
             },
         )
 
@@ -181,12 +183,12 @@ class EventExcludesCreate(FormView, SuccessMessageMixin):
     def form_valid(self, form):
         if self.request.POST["excludes"] == "{}":
             return redirect(self.success_url)
-        pariticipant_list = self.request.session["participant_data"]
+        # pariticipant_list = self.request.session["participant_data"]
         exclude_dict = json.loads(self.request.POST["excludes"])
         event = Event.objects.get(id=self.request.session["event_data"]["event_id"])
-        participant_dict = {}
-        for participant in pariticipant_list:
-            participant_dict[participant[1]] = participant[0]
+        # participant_dict = {}
+        # for participant in pariticipant_list:
+        #     participant_dict[participant[1]] = participant[0]
 
         for exclude in exclude_dict:
             participant = Participant.objects.get(name=exclude, event=event)
@@ -195,7 +197,7 @@ class EventExcludesCreate(FormView, SuccessMessageMixin):
                     name=excluded, event=event
                 )
                 print(f"{participant}: {excluded_participant}")
-                Exclusion.objects.create(
+                Exclusion.objects.create(  # TODO 1: change to get_or_create
                     event=event,
                     participant=participant,
                     excluded_participant=excluded_participant,

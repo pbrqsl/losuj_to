@@ -53,7 +53,15 @@
 <body>
 
     <div id="form-container">
-        <form method="post">
+        {% if form.participants.errors %}
+        <ul class="errorlist">
+            {% for error in form.participants.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+        <form method="post" id="form">
 
             {% csrf_token %}
             {% if participants %}
@@ -72,7 +80,7 @@
                 {% endfor %}
             {% else %}
             {% for participant in rows_range %}
-
+                    <script>hello()</script>
                     <div class="form-row">
                         <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">
                         <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
@@ -91,6 +99,10 @@
     <button id="submit-btn" onclick="submitForm()" disabled>Submit</button>
 
     <script>
+        function hello() {
+            return "Hello, world!";
+        };
+
         function addRow() {
             const lastRow = document.querySelector('.form-row:last-child');
             const newRow = lastRow.cloneNode(true);
@@ -101,7 +113,7 @@
                 input.classList.remove('invalid-email');
             });
 
-            document.getElementById('form-container').appendChild(newRow);
+            document.getElementById('form').appendChild(newRow);
 
             // Hide remove button in the first row
             document.querySelectorAll('.form-row .add-row-btn').forEach(btn => {
@@ -118,19 +130,18 @@
 
         function removeRow(button) {
             const row = button.parentNode;
-            const formContainer = document.getElementById('form-container');
-
-            if (formContainer.childElementCount > 0) {
+            const formContainer = document.getElementById('form');
+            console.log(formContainer);
+            console.log(formContainer.childElementCount);
+            if (formContainer.childElementCount > {{rows_range|length}}+1 ) {
                 //const wasLastRow = row === formContainer.lastElementChild;
                 formContainer.removeChild(row);
                 updateSubmitButtonState();
-
-
-
                 const lastRow = formContainer.lastElementChild;
                 lastRow.querySelector('.add-row-btn').style.display = 'inline';
                 console.log(formContainer.childElementCount);
                 console.log(formContainer.lastElementChild);
+
 
 
             }

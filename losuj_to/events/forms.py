@@ -1,5 +1,3 @@
-from typing import Any
-
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
@@ -47,10 +45,13 @@ class BulkUserRegistrationForm(forms.Form):
         show_hidden_initial=True,
     )
 
-    def clean(self) -> dict[str, Any]:
-        data = self.cleaned_data
-        print("running clean")
-        return data
+    class Meta:
+        exclude = ["participants"]
+
+    # def clean(self) -> dict[str, Any]:
+    #     data = self.cleaned_data
+    #     print("running clean")
+    #     return data
 
     def clean_participants(self):
         print("running clean_participants")
