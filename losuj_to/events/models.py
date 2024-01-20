@@ -14,7 +14,7 @@ class Event(models.Model):
 
     event_name = models.CharField(max_length=255)
     event_date = models.DateField(default=date.today)
-    # draw_date = models.DateTimeField(default=date.today)
+    draw_date = models.DateTimeField(default=date.today, null=True)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     price_limit = models.IntegerField(null=True)
     price_currency = models.CharField(max_length=3, choices=Currency.choices)

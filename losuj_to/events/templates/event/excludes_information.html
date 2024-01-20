@@ -1,5 +1,7 @@
 {% extends 'website/base.html' %}
 
+{% load event_tags %}
+
 {% block content %}
   <h2>Event Information</h2>
   <p>Event Name: {{ event_data.event_name }}</p>
@@ -14,7 +16,7 @@
   [{{participant.1}}]
 
   {% endfor %}
-  <p><a href='{% url "event_participants" %}?participants={{participants}}'>add paticipants</a></p>
+
 
 
 <style>
@@ -99,6 +101,8 @@
 
 
 <body>
+    {% if not excludes %}
+    <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>add paticipants</a></p>
     <form id="unhide_form">
         <label>
             <input type="radio" name="options" value="hide" checked> Don't set exclusions
@@ -108,7 +112,13 @@
         </label>
     </form>
 
+
     <div class="container" id="grid_container">
+    {% else %}
+    {{excludes.items}}
+    <div class="container-unhidden" id="grid_container">
+    {% endif %}
+
         {% if participants|length > 3 %}
         <h2>Exclusions</h2>
         <div class="right-column">
@@ -127,7 +137,21 @@
             {% csrf_token %}
                 {% if participants %}
                     {% for participant in participants %}
-            <div id="targetContainer1" class="drop-container" ondrop="drop(event)" ondragover="allowDrop(event)" data-label="{{participant.1}}"></div><br>
+                    {{participant.0}}
+
+            <div id="targetContainer1" class="drop-container" ondrop="drop(event)" ondragover="allowDrop(event)" data-label="{{participant.1}}">
+                    {% if participant.0 in excludes.keys %}
+                        {% for excluded_participant in excludes|get_value:participant.0 %}
+                            {% for nested_participant in participants %}
+                                {% if nested_participant.0 == excluded_participant %}
+                                <div id="draggable{{forloop.counter}}" class="draggable" draggable="true" ondragstart="drag(event)">{{nested_participant.1}}
+                                    <span class="delete-button">X</span>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                </div><br>
                 {% endfor %}
                 {{forloop.counter}}
             {% endif %}
@@ -151,7 +175,7 @@
 
     <script>
         var sourceContainer;
-        var excludes_dictionary = {}
+        var excludes_dictionary = {};
 
         window.onload = function () {
             var poolContainer = document.getElementById("pool_container");
@@ -233,7 +257,8 @@
                     var deleteButton = document.createElement("span");
                     deleteButton.className = "delete-button";
                     deleteButton.textContent = "X";
-                    deleteButton.onclick = function() {
+                    //deleteButton.onclick = function() {
+                    deleteButton.onclick = () => {
                         // Remove the element from both drop container and source container
 
                         dropContainer.removeChild(draggedElement);

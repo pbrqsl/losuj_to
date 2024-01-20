@@ -51,7 +51,7 @@
 </head>
 
 <body>
-
+    {{ rows_range | length |json_script:'rows_range' }}
     <div id="form-container">
         {% if form.participants.errors %}
         <ul class="errorlist">
@@ -60,23 +60,20 @@
             {% endfor %}
         </ul>
     {% endif %}
-
         <form method="post" id="form">
-
             {% csrf_token %}
             {% if participants %}
                 {% for participant in participants %}
-
                     <div class="form-row">
                         <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)" value="{{participant.0}}">
                         <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)" value="{{participant.1}}">
                         <span class="remove-row-btn" onclick="removeRow(this)" style="display: yes;">(-)</span>
                         {% if forloop.counter == participants|length %}
-                        <span class="add-row-btn" onclick="addRow()">(+)</span>
+                        <span class="add-row-btn" onclick="addRow()" style="display: yes;">(+)</span>
+                        {% else %}
+                        <span class="add-row-btn" onclick="addRow()" style="display: none;">(+)</span>
                         {% endif %}
-
-
-                    </div>
+                     </div>
                 {% endfor %}
             {% else %}
             {% for participant in rows_range %}
@@ -86,10 +83,10 @@
                         <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
                         <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
                         {% if forloop.counter == rows_range|length %}
-                        <span class="add-row-btn" onclick="addRow()">(+)</span>
+                        <span class="add-row-btn" onclick="addRow()" style="display: yes;">(+)</span>
+                        {% else %}
+                        <span class="add-row-btn" onclick="addRow()" style="display: none;">(+)</span>
                         {% endif %}
-
-
                     </div>
                 {% endfor %}
             {% endif %}
@@ -131,9 +128,12 @@
         function removeRow(button) {
             const row = button.parentNode;
             const formContainer = document.getElementById('form');
+            let rows_range = JSON.parse(document.getElementById('rows_range').textContent)
             console.log(formContainer);
             console.log(formContainer.childElementCount);
-            if (formContainer.childElementCount > {{rows_range|length}}+1 ) {
+            console.log(rows_range)
+
+            if (formContainer.childElementCount > rows_range + 1 ) {
                 //const wasLastRow = row === formContainer.lastElementChild;
                 formContainer.removeChild(row);
                 updateSubmitButtonState();
@@ -141,12 +141,7 @@
                 lastRow.querySelector('.add-row-btn').style.display = 'inline';
                 console.log(formContainer.childElementCount);
                 console.log(formContainer.lastElementChild);
-
-
-
             }
-
-
         }
 
         function checkTab(event) {
@@ -245,11 +240,4 @@
             form.submit();
         }
     </script>
-
-
-
-
-
-
-
 {% endblock %}
