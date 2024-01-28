@@ -321,7 +321,26 @@ class EventExcludesUpdate(FormView):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
-        event_data = self.request.session["event_data"]
+        # event_data = self.request.session["event_data"]
+        # event data to get from model
+        event = Event.objects.get(id=event_id)
+
+        draw_date = (
+            event.draw_date.strftime("%Y-%m-%dT%H:%M:%S") if event.draw_date else None
+        )
+
+        event_date = event.event_date.strftime("%Y-%m-%d") if event.event_date else None
+
+        event_data = {
+            "event_name": event.event_name,
+            "event_location": "",
+            "event_date": event_date,
+            "draw_date": draw_date,
+            "price_limit": event.price_limit,
+            "price_currency": event.price_currency,
+            "event_id": event.id,
+        }
+        self.request.session["event_data"] = event_data
 
         participants = []
         excludes = {}
@@ -331,8 +350,10 @@ class EventExcludesUpdate(FormView):
             participants.append([participant_item.user.email, participant_item.name])
 
         excludes_queryset = Exclusion.objects.filter(event_id=event_id)
+        print(excludes_queryset)
         for exclude in excludes_queryset:
-            if exclude.participant not in excludes:
+            print(exclude.participant.user.email)
+            if exclude.participant.user.email not in excludes:
                 excludes[exclude.participant.user.email] = [
                     exclude.excluded_participant.user.email
                 ]
@@ -340,7 +361,6 @@ class EventExcludesUpdate(FormView):
                 excludes[exclude.participant.user.email].append(
                     exclude.excluded_participant.user.email
                 )
-        print(excludes)
 
         return render(
             request,
@@ -355,26 +375,40 @@ class EventExcludesUpdate(FormView):
     def form_valid(self, form):
         event = Event.objects.get(id=self.request.session["event_data"]["event_id"])
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
-        if self.request.POST["excludes"] == "{}":
-            self.request.session["excludes"] = "{}"
-
-            return redirect(success_url)
-        # pariticipant_list = self.request.session["participant_data"]
         exclude_dict = json.loads(self.request.POST["excludes"])
         self.request.session["excludes"] = exclude_dict
-
+        print(exclude_dict)
+        exclusion_pairs = []
         for exclude in exclude_dict:
-            participant = Participant.objects.get(name=exclude, event=event)
+            print(exclude)
+            participant = Participant.objects.get(user__email=exclude, event=event)
+
             for excluded in exclude_dict[exclude]:
+                exclusion_pairs.append([exclude, excluded])
                 excluded_participant = Participant.objects.get(
-                    name=excluded, event=event
+                    user__email=excluded, event=event
                 )
                 print(f"{participant}: {excluded_participant}")
-                Exclusion.objects.create(  # TODO 1: change to get_or_create
+                # Exclusion.objects.create(  # TODO 1: change to get_or_create
+                #     event=event,
+                #     participant=participant,
+                #     excluded_participant=excluded_participant,
+                # )
+
+                exclusion, created = Exclusion.objects.get_or_create(
                     event=event,
                     participant=participant,
                     excluded_participant=excluded_participant,
                 )
+        excludes_queryset = Exclusion.objects.filter(event=event)
+        for exclude in excludes_queryset:
+            exclude_pair = [
+                exclude.participant.user.email,
+                exclude.excluded_participant.user.email,
+            ]
+            if exclude_pair in exclusion_pairs:
+                continue
+            Exclusion.delete(exclude)
         return redirect(success_url)
 
 
@@ -385,15 +419,16 @@ class EventSummarry(TemplateView):
         self.request.session["create_state"] = "summary"
         event_id = self.kwargs.get("pk")
         event = Event.objects.get(id=event_id)
-        print(event)
-        event_data = {}
-        event_data["event_name"] = event.event_name
-        event_data["event_location"] = ""
-        event_data["event_date"] = event.event_date
-        event_data["draw_date"] = event.draw_date
-        event_data["price_limit"] = event.price_limit
-        event_data["price_currency"] = event.price_currency
-        event_data["event_id"] = event.id
+        event_data = {
+            "event_name": event.event_name,
+            "event_location": "",
+            "event_date": event.event_date,
+            "draw_date": event.draw_date,
+            "price_limit": event.price_limit,
+            "price_currency": event.price_currency,
+            "event_id": event.id,
+            "confirmed": event.confirmed,
+        }
 
         participants_queryset = Participant.objects.filter(event=event)
         participants = []

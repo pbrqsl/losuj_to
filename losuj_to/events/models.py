@@ -22,6 +22,7 @@ class Event(models.Model):
     ancestor = models.ForeignKey(
         "self", blank=True, null=True, on_delete=models.CASCADE
     )
+    confirmed = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.event_name
@@ -40,6 +41,9 @@ class Participant(models.Model):
 
     class Meta:
         unique_together = [("event", "name"), ("event", "user")]
+
+    def __str__(self):
+        return f"participant {self.name}"
 
 
 class Exclusion(models.Model):

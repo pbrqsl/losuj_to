@@ -30,6 +30,10 @@
         width: 70%;
     }
 
+    .form-checkbox {
+        display: none;
+    }
+
     .left-column {
         grid-column: 1;
         grid-row: 2;
@@ -104,6 +108,7 @@
     {% if not excludes %}
     <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>add paticipants</a></p>
     <form id="unhide_form">
+
         <label>
             <input type="radio" name="options" value="hide" checked> Don't set exclusions
         </label>
@@ -115,9 +120,24 @@
 
     <div class="container" id="grid_container">
     {% else %}
-    {{excludes.items}}
+    {{ excludes |json_script:'excludes' }}
+    <form id="unhide_form" class="form-checkbox">
+
+        <label>
+            <input type="radio" name="options" value="hide" checked> Don't set exclusions
+        </label>
+        <label>
+            <input type="radio" name="options" value="unhide"> Set exclusions
+        </label>
+    </form>
+
+
+
+
     <div class="container-unhidden" id="grid_container">
     {% endif %}
+
+    {{ participants|json_script:'participants' }}
 
         {% if participants|length > 3 %}
         <h2>Exclusions</h2>
@@ -145,7 +165,7 @@
                             {% for nested_participant in participants %}
                                 {% if nested_participant.0 == excluded_participant %}
                                 <div id="draggable{{forloop.counter}}" class="draggable" draggable="true" ondragstart="drag(event)">{{nested_participant.1}}
-                                    <span class="delete-button">X</span>
+                                    <span class="delete-button" onclick="delete_exclude(this)">X</span>
                                 </div>
                                 {% endif %}
                             {% endfor %}
@@ -175,11 +195,41 @@
 
     <script>
         var sourceContainer;
-        var excludes_dictionary = {};
+
+        //if (excludes) {
+        if (typeof excludes !== 'undefined') {
+                let excludesDictionary = excludes.textContent;
+                console.log("we've got excludes");
+                console.log(excludesDictionary);
+                var excludes_dictionary = JSON.parse(excludesDictionary);
+            } else {
+                var excludes_dictionary = {};
+            }
+        console.log(excludes_dictionary)
+        if (typeof participants !== 'undefined') {
+                //let excludesDictionary = excludes.textContent;
+                console.log("we've got participants");
+                console.log(participants);
+                var participant_dict = {}
+                var participants_list = JSON.parse(participants.textContent);
+                console.log(typeof(participants_list));
+                for (element of participants_list) {
+                    console.log(element[0]);
+                    console.log(element[1]);
+                    participant_dict[element[1]]=element[0];
+
+                }
+                console.log(participant_dict)
+        }
+
+
 
         window.onload = function () {
             var poolContainer = document.getElementById("pool_container");
             sortElements(poolContainer);
+
+
+
         };
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -268,9 +318,10 @@
 
                         console.log("data_label", data_label);
                         console.log("value", value);
-                        var index = excludes_dictionary[data_label].indexOf(value);
-                        excludes_dictionary[data_label].splice(index, 1);
+                        var index = excludes_dictionary[participant_dict[data_label]].indexOf(value);
+                        excludes_dictionary[participant_dict[data_label]].splice(index, 1);
                         console.log(index)
+                        console.log(excludes_dictionary)
                         //sourceContainer.removeChild(draggedElement);
 
                     };
@@ -280,11 +331,17 @@
                     console.log("(drop, sourceCountainer):", sourceContainer);
 
                     var dropContainerName = dropContainer.getAttribute("data-label");
-                    if(!excludes_dictionary[dropContainerName]) {
-                        excludes_dictionary[dropContainerName] = [];
+                    console.log(excludes_dictionary)
+
+                    if(!excludes_dictionary[participant_dict[dropContainerName]]) {
+                        excludes_dictionary[participant_dict[dropContainerName]] = [];
                     }
-                    excludes_dictionary[dropContainerName].push(draggedElement.textContent.replace("X","").trim());
+                    console.log('--------adding element to-------')
+                    console.log(excludes_dictionary)
+                    excludes_dictionary[participant_dict[dropContainerName]].push(participant_dict[draggedElement.textContent.replace("X","").trim()]);
                     console.log(excludes_dictionary);
+                    console.log('--------finished adding-------')
+
                 }
                 sortElements(poolContainer);
 
@@ -294,6 +351,20 @@
             }
 
         }
+        function delete_exclude(element) {
+                let dropContainer = element.parentNode.parentNode
+                let data_label = dropContainer.getAttribute("data-label");
+                let value = element.parentNode.textContent.replace("X","").trim();
+                let index = excludes_dictionary[participant_dict[data_label]].indexOf(participant_dict[value]);
+                element.parentNode.parentNode.removeChild(element.parentNode)
+                console.log("list before removal", excludes_dictionary[participant_dict[data_label]])
+                excludes_dictionary[participant_dict[data_label]].splice(index, 1);
+                console.log("after: ",excludes_dictionary)
+
+
+                    };
+
+
         function sortElements(container) {
             var elements = Array.from(container.children);
 
