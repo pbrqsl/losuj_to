@@ -18,14 +18,18 @@
 
   {% endfor %}
   <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>edit paticipants</a></p>
-  <p>Excludes:</p>
-  {% for participant, excluded_list in excludes.items %}
-    {% for excluded in excluded_list %}
-        {{participant}} cannot draw {{excluded}} <br>
-    {% endfor %}
 
-  {% endfor %}
-  <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit excludes</a></p>
+  {% if excludes %}
+    <p>Excludes:</p>
+    {% for participant, excluded_list in excludes.items %}
+        {% for excluded in excluded_list %}
+            {{participant}} cannot draw {{excluded}} <br>
+        {% endfor %}
+
+    {% endfor %}
+    <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit excludes</a></p>
+{% endif %}
+  <p><a href='{% url "event_toggle_active" pk=event_data.event_id %}'>set active</a></p>
 
 <style>
     .container {

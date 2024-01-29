@@ -7,8 +7,9 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.http import HttpRequest
+from django.http import HttpResponse as HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import FormView, TemplateView
 from events.forms import (
@@ -389,12 +390,6 @@ class EventExcludesUpdate(FormView):
                     user__email=excluded, event=event
                 )
                 print(f"{participant}: {excluded_participant}")
-                # Exclusion.objects.create(  # TODO 1: change to get_or_create
-                #     event=event,
-                #     participant=participant,
-                #     excluded_participant=excluded_participant,
-                # )
-
                 exclusion, created = Exclusion.objects.get_or_create(
                     event=event,
                     participant=participant,
@@ -432,14 +427,25 @@ class EventSummarry(TemplateView):
 
         participants_queryset = Participant.objects.filter(event=event)
         participants = []
+        excludes = {}
         for participant in participants_queryset:
             participants.append([participant.user.email, participant.name])
-        excludes = {}
+
         excludes_queryset = Exclusion.objects.filter(event=event)
-        for exclude in excludes_queryset:
-            if exclude.participant.name not in excludes:
-                excludes[exclude.participant.name] = []
-            excludes[exclude.participant.name].append(exclude.excluded_participant.name)
+        if excludes_queryset and len(participants_queryset) < 4:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                "The number of participants is currently to low to use exclude list. Please add participants to make excludes valid again.",
+            )
+        else:
+            excludes = {}
+            for exclude in excludes_queryset:
+                if exclude.participant.name not in excludes:
+                    excludes[exclude.participant.name] = []
+                excludes[exclude.participant.name].append(
+                    exclude.excluded_participant.name
+                )
 
         return render(
             request,
@@ -450,3 +456,19 @@ class EventSummarry(TemplateView):
                 "excludes": excludes,
             },
         )
+
+
+class EventToggleActive(TemplateView):
+    success_url = success_url = "event_summary"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_object_or_404(Event, pk=event_id)
+        event.confirmed = True
+        event.save()
+        success_url = reverse(self.success_url, kwargs={"pk": event.id})
+
+        return redirect(success_url)
+
+    #
+    #

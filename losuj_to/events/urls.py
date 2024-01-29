@@ -6,6 +6,7 @@ from events.views import (
     EventParticipantsCreateView,
     EventParticipantsUpdateView,
     EventSummarry,
+    EventToggleActive,
 )
 
 urlpatterns = [
@@ -26,6 +27,11 @@ urlpatterns = [
         "event_update_excludes/<int:pk>",
         EventExcludesUpdate.as_view(),
         name="event_excludes_update",
+    ),
+    path(
+        "event_toogle_active/<int:pk>",
+        EventToggleActive.as_view(),
+        name="event_toggle_active",
     ),
     # path("event_excludes_update/")
 ]
