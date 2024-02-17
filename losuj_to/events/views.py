@@ -6,10 +6,9 @@ from allauth.account.utils import has_verified_email
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpRequest
-from django.http import HttpResponse as HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_list_or_404, get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import FormView, TemplateView
 from events.forms import (
@@ -19,6 +18,8 @@ from events.forms import (
 )
 from events.models import Event, Exclusion, Participant
 from users.models import CustomUser
+
+from .helpers import get_event_by_pk
 
 
 class EventCreateView(LoginRequiredMixin, FormView):
@@ -66,6 +67,7 @@ class EventCreateView(LoginRequiredMixin, FormView):
         )
 
     def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
+        # TODO: change this to dispatch
         user = self.request.user
 
         email = user.email or None
@@ -79,6 +81,44 @@ class EventCreateView(LoginRequiredMixin, FormView):
                 <a href='resend_confirmation_email/'>Resend confirmation email</a>",
         )
         return redirect("home")
+
+
+class EventUpdateView(LoginRequiredMixin, FormView):
+    form_class = EventCreateForm
+    success_url = "event_summary"
+    template_name = "event/event_information.html"
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        if request.user != event.owner:
+            raise PermissionDenied("You are not authorized!")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self) -> dict[str, Any]:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        return {
+            "event_name": event.event_name,
+            "event_location": event.event_location,
+            "event_date": event.event_date,
+            "draw_date": event.draw_date,
+            "price_currency": event.price_currency,
+            "price_limit": event.price_limit,
+        }
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+
+        event.event_name = form.cleaned_data["event_name"]
+        event.event_location = form.cleaned_data["event_location"]
+        event.event_date = form.cleaned_data["event_date"]
+        event.price_currency = form.cleaned_data["price_currency"]
+        event.price_limit = form.cleaned_data["price_limit"]
+        event.save()
+
+        return redirect(self.success_url, pk=self.kwargs.get("pk"))
 
 
 class EventParticipantsCreateView(FormView, SuccessMessageMixin, LoginRequiredMixin):
@@ -116,9 +156,8 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin, LoginRequiredMi
         )
 
     def form_valid(self, form):
-        event = Event.objects.get(
-            id=self.request.session.get("event_data").get("event_id")
-        )
+        event_id = self.request.session.get("event_data").get("event_id")
+        event = get_object_or_404(Event, id=event_id)
 
         parcipants_data = []
         participants = form.cleaned_data["participants"]
@@ -129,6 +168,7 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin, LoginRequiredMi
                 name = participant[0]
             try:
                 user = CustomUser.objects.get(email=email)
+                # user = get_object_or_404(CustomUser, email=email)
             except ObjectDoesNotExist:
                 user = CustomUser.objects.create_user(email=email, password=None)
 
@@ -162,15 +202,22 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin, LoginRequiredMi
         )
 
 
-class EventParticipantsUpdateView(FormView):
+class EventParticipantsUpdateView(FormView, LoginRequiredMixin):
     template_name = "event/participant_information.html"
     form_class = BulkUserRegistrationForm
     num_rows = 3
     success_url = "event_summary"
 
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        if request.user != event.owner:
+            raise PermissionDenied("You are not authorized!")
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
-        event = Event.objects.get(id=event_id)
+        event = get_event_by_pk(event_id=event_id)
         event_data = {}
         event_data["event_name"] = event.event_name
         event_data["event_location"] = ""
@@ -192,7 +239,8 @@ class EventParticipantsUpdateView(FormView):
         )
 
     def form_valid(self, form):
-        event = Event.objects.get(id=self.kwargs.get("pk"))
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
         parcipants_data = []
         participants = form.cleaned_data["participants"]
         for participant in participants:
@@ -206,8 +254,6 @@ class EventParticipantsUpdateView(FormView):
             except ObjectDoesNotExist:
                 print("exception")
                 user = CustomUser.objects.create_user(email=email, password=None)
-            print(event)
-            print(user)
             try:
                 participant = Participant.objects.get(
                     user=user,
@@ -236,9 +282,10 @@ class EventParticipantsUpdateView(FormView):
 
         self.request.session["participant_data"] = parcipants_data
         # return redirect(self.success_url)
-        if self.request.session["create_state"] != "in_progress":
-            return redirect(self.success_url, pk=self.kwargs.get("pk"))
-        return redirect("event_excludes")
+        # if self.request.session["create_state"] != "in_progress":
+
+        # return redirect("event_excludes")
+        return redirect(self.success_url, pk=self.kwargs.get("pk"))
 
     def form_invalid(self, form):
         event_data = self.request.session["event_data"]
@@ -262,7 +309,7 @@ class EventParticipantsUpdateView(FormView):
         )
 
 
-class EventExcludesCreate(FormView, SuccessMessageMixin):
+class EventExcludesCreate(FormView, SuccessMessageMixin, LoginRequiredMixin):
     template_name = "event/excludes_information.html"
     form_class = ExcludeParticipantsForm
     success_url = "event_summary"
@@ -289,7 +336,10 @@ class EventExcludesCreate(FormView, SuccessMessageMixin):
         )
 
     def form_valid(self, form):
-        event = Event.objects.get(id=self.request.session["event_data"]["event_id"])
+        # event = Event.objects.get(id=self.request.session["event_data"]["event_id"])
+        event_id = self.request.session["event_data"]["event_id"]
+        event = get_object_or_404(Event, id=event_id)
+
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
         if self.request.POST["excludes"] == "{}":
             self.request.session["excludes"] = "{}"
@@ -300,10 +350,20 @@ class EventExcludesCreate(FormView, SuccessMessageMixin):
         self.request.session["excludes"] = exclude_dict
 
         for exclude in exclude_dict:
-            participant = Participant.objects.get(name=exclude, event=event)
+            print(f'exclude: "{exclude}"')
+            print(f"event: {event.id}")
+
+            # participant = Participant.objects.get(user__email=exclude, event=event)
+            participant = get_object_or_404(
+                Participant, user__email=exclude, event=event
+            )
+
             for excluded in exclude_dict[exclude]:
-                excluded_participant = Participant.objects.get(
-                    name=excluded, event=event
+                # excluded_participant = Participant.objects.get(
+                #     user__email=excluded, event=event
+                # )
+                excluded_participant = get_object_or_404(
+                    Participant, user__email=excluded, event=event
                 )
                 print(f"{participant}: {excluded_participant}")
                 Exclusion.objects.create(  # TODO 1: change to get_or_create
@@ -314,17 +374,22 @@ class EventExcludesCreate(FormView, SuccessMessageMixin):
         return redirect(success_url)
 
 
-class EventExcludesUpdate(FormView):
+class EventExcludesUpdate(FormView, LoginRequiredMixin):
     template_name = "event/excludes_information.html"
     form_class = ExcludeParticipantsForm
     success_url = "event_summary"
     success_message = "yup"
 
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        if request.user != event.owner:
+            raise PermissionDenied("You are not authorized!")
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
-        # event_data = self.request.session["event_data"]
-        # event data to get from model
-        event = Event.objects.get(id=event_id)
+        event = get_event_by_pk(event_id=event_id)
 
         draw_date = (
             event.draw_date.strftime("%Y-%m-%dT%H:%M:%S") if event.draw_date else None
@@ -374,20 +439,26 @@ class EventExcludesUpdate(FormView):
         )
 
     def form_valid(self, form):
-        event = Event.objects.get(id=self.request.session["event_data"]["event_id"])
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
         exclude_dict = json.loads(self.request.POST["excludes"])
         self.request.session["excludes"] = exclude_dict
         print(exclude_dict)
         exclusion_pairs = []
         for exclude in exclude_dict:
-            print(exclude)
-            participant = Participant.objects.get(user__email=exclude, event=event)
+            # participant = Participant.objects.get(user__email=exclude, event=event)
+            participant = get_object_or_404(
+                Participant, user__email=exclude, event=event
+            )
 
             for excluded in exclude_dict[exclude]:
                 exclusion_pairs.append([exclude, excluded])
-                excluded_participant = Participant.objects.get(
-                    user__email=excluded, event=event
+                # excluded_participant = Participant.objects.get(
+                #     user__email=excluded, event=event
+                # )
+                excluded_participant = get_object_or_404(
+                    Participant, user__email=excluded, event=event
                 )
                 print(f"{participant}: {excluded_participant}")
                 exclusion, created = Exclusion.objects.get_or_create(
@@ -395,6 +466,7 @@ class EventExcludesUpdate(FormView):
                     participant=participant,
                     excluded_participant=excluded_participant,
                 )
+
         excludes_queryset = Exclusion.objects.filter(event=event)
         for exclude in excludes_queryset:
             exclude_pair = [
@@ -407,13 +479,20 @@ class EventExcludesUpdate(FormView):
         return redirect(success_url)
 
 
-class EventSummarry(TemplateView):
+class EventSummarry(TemplateView, LoginRequiredMixin):
     template_name = "event/event_summary.html"
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        if request.user != event.owner:
+            raise PermissionDenied("You are not authorized!")
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         self.request.session["create_state"] = "summary"
         event_id = self.kwargs.get("pk")
-        event = Event.objects.get(id=event_id)
+        event = get_event_by_pk(event_id=event_id)
         event_data = {
             "event_name": event.event_name,
             "event_location": "",
@@ -447,6 +526,46 @@ class EventSummarry(TemplateView):
                     exclude.excluded_participant.name
                 )
 
+        drawing_pools = []
+        for participant in participants_queryset:
+            print(participant.id)
+            participant_excludes = Exclusion.objects.filter(
+                participant_id=participant.id
+            ).filter(event_id=event_id)
+            if not participant_excludes:
+                print("not found excludes")
+                exclude_pool = []
+            else:
+                print(participant_excludes)
+                exclude_pool = [
+                    exclude.excluded_participant for exclude in participant_excludes
+                ]
+                print(exclude_pool)
+
+            drawing_pool = [
+                candidate.id
+                for candidate in participants_queryset
+                if candidate != participant and candidate not in exclude_pool
+            ]
+            drawing_pools.append(drawing_pool)
+            if len(drawing_pool) < 2:
+                messages.add_message(
+                    self.request,
+                    messages.ERROR,
+                    f"Exlusions for participant {participant} are to strict. Drawing names is not possible!",
+                )
+
+        print(excludes)
+        print(drawing_pools)
+        for drawing_pool in drawing_pools:
+            if drawing_pools.count(drawing_pool) > len(drawing_pool):
+                messages.add_message(
+                    self.request,
+                    messages.ERROR,
+                    "Exlusions settings are to strict!",
+                )
+                break
+
         return render(
             request,
             self.template_name,
@@ -458,16 +577,82 @@ class EventSummarry(TemplateView):
         )
 
 
-class EventToggleActive(TemplateView):
-    success_url = success_url = "event_summary"
+class EventActivate(TemplateView, LoginRequiredMixin):
+    success_url = "event_summary"
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        if request.user != event.owner:
+            raise PermissionDenied("You are not authorized!")
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
-        event = get_object_or_404(Event, pk=event_id)
+        event = get_event_by_pk(event_id=event_id)
         event.confirmed = True
         event.save()
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
+        participants_queryset = get_list_or_404(Participant, event_id=event.id)
 
+        print(participants_queryset)
+        drawing_pools = []
+        for participant in participants_queryset:
+            print(participant.id)
+            excludes = Exclusion.objects.filter(participant_id=participant.id).filter(
+                event_id=event_id
+            )
+            if not excludes:
+                print("not found excludes")
+                exclude_pool = []
+            else:
+                print(excludes)
+                exclude_pool = [exclude.excluded_participant for exclude in excludes]
+                print(exclude_pool)
+
+            drawing_pool = [
+                candidate.id
+                for candidate in participants_queryset
+                if candidate != participant and candidate not in exclude_pool
+            ]
+            print(f"drawing pool for participant {participant} {drawing_pool}")
+            drawing_pools.append(drawing_pool)
+
+        print(drawing_pools)
+
+        # for participant in participants_queryset:
+        #     print(participant.id)
+        #     excludes = Exclusion.objects.filter(participant_id=participant.id).filter(event_id=event_id)
+        #     if not excludes:
+        #         print('not found excludes')
+        #         exclude_pool = []
+        #     else:
+        #         print(excludes)
+        #         exclude_pool = [exclude.excluded_participant for exclude in excludes]
+        #         print(exclude_pool)
+        #     draws = Draw.objects.filter(event=event)
+        #     drawn_pool = [
+        #         draw.drawn_participant for draw in draws
+        #         ]
+
+        #     print(drawn_pool)
+        #     drawing_pool = [candidate.id for candidate in participants_queryset
+        #                     if candidate != participant
+        #                     and candidate not in exclude_pool
+        #                     and candidate not in drawn_pool
+        #                     ]
+        #     print(drawing_pool)
+        #     drawn_participant = get_object_or_404(Participant,id=random.choice(drawing_pool))
+        #     print(drawn_participant)
+        #     drawing_pools.append([participant, drawing_pool, len(drawing_pool)])
+
+        print(drawing_pools)
+        # sorted_drawing_pools = sorted(drawing_pools, key=lambda x: x[2])
+
+        # Draw.objects.create(event=event,
+        #     participant=participant,
+        #     drawn_participant=drawn_participant)
+        # print(sorted_drawing_pools)
         return redirect(success_url)
 
     #

@@ -13,6 +13,7 @@ class Event(models.Model):
         GBP = "GBP", "British Pound"
 
     event_name = models.CharField(max_length=255)
+    event_location = models.CharField(max_length=255, null=True)
     event_date = models.DateField(default=date.today)
     draw_date = models.DateTimeField(default=date.today, null=True)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -28,10 +29,10 @@ class Event(models.Model):
         return self.event_name
 
 
-class Draw(models.Model):
-    draw_date = models.DateTimeField()
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    draw_taken = models.BooleanField()
+# class Draw(models.Model):
+#     draw_date = models.DateTimeField()
+#     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+#     draw_taken = models.BooleanField()
 
 
 class Participant(models.Model):
@@ -44,6 +45,23 @@ class Participant(models.Model):
 
     def __str__(self):
         return f"participant {self.name}"
+
+
+class Draw(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    participant = models.ForeignKey(
+        Participant, on_delete=models.CASCADE, related_name="draw_participant"
+    )
+    drawn_participant = models.ForeignKey(
+        Participant,
+        on_delete=models.CASCADE,
+        related_name="draw_as_drawn_participant",
+    )
+
+    def save(self, *args, **kwargs):
+        if self.participant == self.drawn_participant:
+            raise IntegrityError("Participant and drawn participant cannot be the same")
+        super().save(*args, **kwargs)
 
 
 class Exclusion(models.Model):

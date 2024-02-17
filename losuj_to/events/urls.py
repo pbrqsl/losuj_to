@@ -1,16 +1,18 @@
 from django.urls import path
 from events.views import (
+    EventActivate,
     EventCreateView,
     EventExcludesCreate,
     EventExcludesUpdate,
     EventParticipantsCreateView,
     EventParticipantsUpdateView,
     EventSummarry,
-    EventToggleActive,
+    EventUpdateView,
 )
 
 urlpatterns = [
     path("event_create/", EventCreateView.as_view(), name="event_create"),
+    path("event_update/<int:pk>", EventUpdateView.as_view(), name="event_update"),
     path(
         "event_create_participants/",
         EventParticipantsCreateView.as_view(),
@@ -29,8 +31,8 @@ urlpatterns = [
         name="event_excludes_update",
     ),
     path(
-        "event_toogle_active/<int:pk>",
-        EventToggleActive.as_view(),
+        "event_toggle_active/<int:pk>",
+        EventActivate.as_view(),
         name="event_toggle_active",
     ),
     # path("event_excludes_update/")

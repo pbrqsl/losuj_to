@@ -135,6 +135,8 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
+SESSION_COOKIE_AGE = 3600
+
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
@@ -181,11 +183,10 @@ LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
 # EMAIL_HOST=env("EMAIL_HOST")
-# EMAIL_HOST_USER=env("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD=env("EMAIL_HOST_PASSWORD")
+
 EMAIL_HOST = "smtp.gmail.com"
-EMAIL_HOST_USER = "pbrqsl"
-EMAIL_HOST_PASSWORD = "zgarolnfcjpyhwfn"
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = 587
 EMAIL_USE_TML = True
 EMAIL_USE_SSL = False
@@ -194,4 +195,6 @@ EMAIL_USE_TLS = True
 # EMAIL_HOST_USER="pbrqsl"
 # EMAIL_HOST_PASSWORD="zgarolnfcjpyhwfn"
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = BASE_DIR / "sent_emails"

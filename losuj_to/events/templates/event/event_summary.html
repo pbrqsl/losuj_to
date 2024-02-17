@@ -11,7 +11,7 @@
   <p>Event Location: {{ event_data.event_location }}</p>
 
   {% endif %}
-
+  <p><a href='{% url "event_update" pk=event_data.event_id %}'>edit event details</a></p>
   <p>Participants:</p>
   {% for participant in participants %}
   {{participant.1}} |
@@ -27,8 +27,9 @@
         {% endfor %}
 
     {% endfor %}
-    <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit excludes</a></p>
+
 {% endif %}
+  <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit od add excludes</a></p>
   <p><a href='{% url "event_toggle_active" pk=event_data.event_id %}'>set active</a></p>
 
 <style>

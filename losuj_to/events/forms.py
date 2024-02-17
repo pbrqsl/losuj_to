@@ -54,10 +54,10 @@ class BulkUserRegistrationForm(forms.Form):
     #     return data
 
     def clean_participants(self):
-        print("running clean_participants")
-        print(self.cleaned_data["participants"])
+        # print("running clean_participants")
+        # print(self.cleaned_data["participants"])
         data = self.cleaned_data["participants"]
-        print(data)
+        # print(data)
         data_export = []
         rows = data.split("\n")
         validator = EmailValidator()
@@ -68,16 +68,16 @@ class BulkUserRegistrationForm(forms.Form):
             name = row.split(",")[1].rstrip()
 
             if email in emails:
-                print("doubled email")
+                # print("doubled email")
                 raise ValidationError("Emails cannot repeat.")
             if name in names:
-                print("doubled name")
+                # print("doubled name")
                 raise ValidationError("Name value cannot repeat")
             emails.append(email)
             if name != "":
                 names.append(name)
-            print(emails)
-            print(names)
+            # print(emails)
+            # print(names)
             try:
                 validator(email)
                 print(f"{email} validated")
@@ -97,7 +97,7 @@ class ExcludeParticipantsForm(forms.Form):
         }
 
     def clean(self):
-        print(">>clean")
+        # print(">>clean")
         cleaned_data = super().clean
-        print(cleaned_data.__dict__)
+        # print(cleaned_data.__dict__)
         return cleaned_data
