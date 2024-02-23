@@ -29,9 +29,11 @@ class EventCreateForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        # print(cleaned_data.get("timezone"))
         event_date = cleaned_data.get("event_date")
         draw_date = cleaned_data.get("draw_date")
         if draw_date and draw_date.date() >= event_date:
+            print("Draw date must occur before the event date.")
             raise ValidationError("Draw date must occur before the event date.")
         return cleaned_data
 
@@ -101,3 +103,11 @@ class ExcludeParticipantsForm(forms.Form):
         cleaned_data = super().clean
         # print(cleaned_data.__dict__)
         return cleaned_data
+
+
+class EventConfirmActivationForm(forms.Form):
+    pass
+
+
+class EventConfirmDeactivationForm(forms.Form):
+    pass

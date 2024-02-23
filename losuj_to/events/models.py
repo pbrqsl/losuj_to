@@ -44,7 +44,7 @@ class Participant(models.Model):
         unique_together = [("event", "name"), ("event", "user")]
 
     def __str__(self):
-        return f"participant {self.name}"
+        return f"{self.name}"
 
 
 class Draw(models.Model):
@@ -57,11 +57,15 @@ class Draw(models.Model):
         on_delete=models.CASCADE,
         related_name="draw_as_drawn_participant",
     )
+    collected = models.BooleanField(default=False, null=False)
 
     def save(self, *args, **kwargs):
         if self.participant == self.drawn_participant:
             raise IntegrityError("Participant and drawn participant cannot be the same")
         super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"Drawing result for event {self.event} and participant {self.participant} ({self.participant.user}), result: {self.drawn_participant} ({self.drawn_participant.user})"
 
 
 class Exclusion(models.Model):

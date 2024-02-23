@@ -17,7 +17,19 @@
             {{ field.help_text|safe }}
           </p>
         {% endif %}
+        {% if field.name == "draw_date" %}
+        <p>
 
+
+        <label for="timezone">Time zone:</label>
+        <select name="timezone">
+            {% for city, tz in timezones.items %}
+            {{tz}}
+            <option value="{{ tz }}"{% if tz == TIME_ZONE %} selected{% endif %}>{{ city }}</option>
+            {% endfor %}
+        </select>
+        </p>
+        {% endif %}
         </p>
     </div>
 {% endfor %}
