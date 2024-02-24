@@ -1,0 +1,199 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+  <h2>{{ event_data.event_name }}</h2>
+
+  <h3>Hello {{ event_data.participant }} </h3>
+
+  <p>Event date: {{ event_data.event_date }}</p>
+
+  {% if event_data.draw_date != None %}
+
+
+  <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
+
+  {% else %}
+    {% if not event_data.draw_collected %}
+        You can now draw your gift taker!
+        <button id="collect_draw" data-draw-id="{{ event_data.draw_id }}">Draw!</button>
+    {% else %}
+        Click <a href="#" id="unhide_name">here</a> to unhide your drawn name.
+
+        <h1 style="display: none" id="drawn_name">{{ event_data.drawn_participant }}</h1>
+
+    {% endif %}
+
+    <h3>your hishlist....</h3>
+
+
+  {% endif %}
+
+
+  {% if event_data.event_location != '' %}
+  <p>Event Location: {{ event_data.event_location }}</p>
+
+  {% endif %}
+
+
+  {% if excludes %}
+
+
+{% endif %}
+
+<style>
+    .container {
+        display: grid;
+        width: 70%;
+        display: none;
+    }
+    .container-unhidden {
+        display: grid;
+        width: 70%;
+    }
+
+    .left-column {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        align-items: center;
+
+        padding-right: 40px;
+    }
+
+    .right-column {
+        grid-column: 2;
+        grid-row: 2;
+        align-items: center;
+
+        padding-left: 40px;
+        padding-right: 100px;
+
+    }
+
+    .drop-container {
+        width: 500px;
+        height: 50px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+        position: relative; /* Required for positioning the label */
+    }
+
+    .drop-container::before {
+        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
+        position: absolute;
+        top: 50%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+        color: #ccc;
+        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
+        font-family: Arial, Helvetica, sans-serif ;
+    }
+
+    .pool-container {
+        width: 100%;
+        height: 80px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+    }
+
+    .draggable {
+        cursor: move;
+        display: inline-block;
+        margin: 5px;
+        padding: 5px;
+        border: 1px solid #000;
+        font-family: Arial, Helvetica, sans-serif;
+        border-radius: 10px;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .delete-button {
+        cursor: pointer;
+        color: red;
+        margin-left: 5px;
+    }
+</style>
+
+
+
+
+    </div>
+
+
+
+    <script>
+    function getCSRFTToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim()
+                if (cookie.substring(0, "csrftoken".length + 1) === ("csrftoken" + "=")) {
+
+                    cookieValue = decodeURIComponent(cookie.substring("csrftoken".length + 1));
+                    break;
+                    }
+                }
+            }
+        return cookieValue;
+       }
+    document.addEventListener('DOMContentLoaded', (event) => {
+
+        const collectDrawButton = document.getElementById('collect_draw');
+        const collectUnhideNameLink = document.getElementById('unhide_name');
+        const collectDrawnName = document.getElementById('drawn_name');
+
+        console.log(collectDrawButton)
+        if (collectDrawButton) {
+            collectDrawButton.addEventListener('click', function() {
+                console.log(getCSRFTToken());
+                const drawId = this.getAttribute('data-draw-id')
+                console.log(drawId);
+                fetch(`/api/draw_collected/${drawId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+                    body: JSON.stringify ({
+                        collected: true,
+                        }),
+                    })
+                .then(response => {
+                        if (response.ok) {
+                            alert('Gift collection status updated successfully!')
+                            console.log('OK')
+                            location.reload()
+                        } else {
+                            alert('Thre was an issue with yor request.')
+                        }
+                    });
+                })
+            };
+
+
+        if (collectUnhideNameLink) {
+            collectUnhideNameLink.addEventListener('click', function() {
+                if (collectDrawnName) {
+                    if (collectDrawnName.style.display === 'none') {
+                            collectDrawnName.style.display = 'block';
+                        } else {
+                            collectDrawnName.style.display = 'none';
+                        }
+                }
+            });
+        };
+    }
+        )
+
+
+
+ </script>
+
+{% endblock %}

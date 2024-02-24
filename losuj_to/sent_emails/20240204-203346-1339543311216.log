@@ -1,0 +1,33 @@
+Content-Type: multipart/alternative;
+ boundary="===============3606506680347875214=="
+MIME-Version: 1.0
+Subject: [example.com] Please Confirm Your Email Address
+From: webmaster@localhost
+To: A@b.pl
+Date: Sun, 04 Feb 2024 19:33:46 -0000
+Message-ID: <170707522613.7132.14073536557488414263@DESKTOP-N9JL0QI>
+
+--===============3606506680347875214==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Hello from example.com!
+
+You're receiving this email because user A@b.pl has given your email address to register an account on example.com.
+
+To confirm this is correct, go to http://example.com/accounts/confirm-email/vvdfasfqioee3ogxvkn1zwdrd5xuk9pbummmew1jintc0pbdruit70gpz8q0ihno/
+
+Thank you for using example.com!
+example.com
+--===============3606506680347875214==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+You're receiving this email because user A@b.pl has given your email address to register an account on .
+
+To confirm this is correct, go to http://example.com/accounts/confirm-email/vvdfasfqioee3ogxvkn1zwdrd5xuk9pbummmew1jintc0pbdruit70gpz8q0ihno/
+--===============3606506680347875214==--
+
+-------------------------------------------------------------------------------

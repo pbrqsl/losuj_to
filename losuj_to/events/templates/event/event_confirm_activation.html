@@ -1,0 +1,10 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+
+<h2>Confirm event!</h2>
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Activate!</button>
+</form>
+{% endblock %}
