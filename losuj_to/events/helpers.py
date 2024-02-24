@@ -1,3 +1,5 @@
+import random
+
 from django.shortcuts import get_list_or_404, get_object_or_404
 
 from .models import Event, Exclusion, Participant
@@ -84,3 +86,27 @@ def get_and_validate_event(event: Event):
             break
 
     return validation_result
+
+
+def event_draw(drawing_dict, participants):
+    counter = 0
+    continue_drawing = True
+    while continue_drawing:
+        counter += 1
+        if counter == 100:
+            continue_drawing = False
+        drawn_participants = []
+        draw_result = {}
+        for participant in participants:
+            drawing_pool = [
+                x for x in drawing_dict[participant[0]] if x not in drawn_participants
+            ]
+            if len(drawing_pool) == 0:
+                continue
+            drawn_participant = random.choice(drawing_pool)
+            drawn_participants.append(drawn_participant)
+            draw_result[participant[0]] = drawn_participant
+
+        if len(draw_result) == len(participants):
+            continue_drawing = False
+    return draw_result

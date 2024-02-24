@@ -35,15 +35,10 @@ class Event(models.Model):
     def save(self, *args, **kwargs) -> None:
         super().save(*args, **kwargs)
         signer = Signer()
-        print("--------------")
-        print(self.id)
         token = signer.sign(self.id)
         token = token[4:]
-        print(token)
         self.token = token
-
         super().save()
-        print("--------------")
 
 
 # class Draw(models.Model):

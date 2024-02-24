@@ -1,6 +1,5 @@
 import ast
 import json
-import random
 from datetime import datetime
 from typing import Any
 
@@ -24,7 +23,12 @@ from events.forms import (
 from events.models import Draw, Event, Exclusion, Participant
 from users.models import CustomUser
 
-from .helpers import get_and_validate_event, get_event_by_hash, get_event_by_pk
+from .helpers import (
+    event_draw,
+    get_and_validate_event,
+    get_event_by_hash,
+    get_event_by_pk,
+)
 
 
 class EventCreateView(LoginRequiredMixin, FormView):
@@ -593,34 +597,39 @@ class EventActivate(TemplateView, LoginRequiredMixin):
 
         event.confirmed = True
         event.save()
+
+        # def event_draw(drawing_dict, participants):
+        #     print('draw with function!')
+        #     counter = 0
+        #     continue_drawing = True
+        #     while continue_drawing:
+        #         counter += 1
+        #         print(f"try no {counter}")
+        #         if counter == 100:
+        #             continue_drawing = False
+        #         drawn_participants = []
+        #         draw_result = {}
+        #         for participant in participants:
+        #             drawing_pool = [
+        #                 x
+        #                 for x in drawing_dict[participant[0]]
+        #                 if x not in drawn_participants
+        #             ]
+        #             if len(drawing_pool) == 0:
+        #                 print("not succeded")
+        #                 continue
+        #             drawn_participant = random.choice(drawing_pool)
+        #             drawn_participants.append(drawn_participant)
+        #             draw_result[participant[0]] = drawn_participant
+
+        #         if len(draw_result) == len(participants):
+        #             continue_drawing = False
+        #     return draw_result
+
         drawing_dict = event_validate["drawing_dict"]
         participants = event_validate["participants"]
-        # TODO: move to helpers
-        counter = 0
-        continue_drawing = True
-        while continue_drawing:
-            counter += 1
-            print(f"try no {counter}")
-            if counter == 100:
-                continue_drawing = False
-            drawn_participants = []
-            draw_result = {}
-            for participant in participants:
-                drawing_pool = [
-                    x
-                    for x in drawing_dict[participant[0]]
-                    if x not in drawn_participants
-                ]
-                if len(drawing_pool) == 0:
-                    print("not succeded")
-                    continue
-                drawn_participant = random.choice(drawing_pool)
-                drawn_participants.append(drawn_participant)
-                draw_result[participant[0]] = drawn_participant
 
-            if len(draw_result) == len(participants):
-                continue_drawing = False
-
+        draw_result = event_draw(drawing_dict=drawing_dict, participants=participants)
         print(draw_result)
 
         for key in draw_result:
@@ -633,8 +642,8 @@ class EventActivate(TemplateView, LoginRequiredMixin):
                 drawn_participant=drawn_participant,
                 event=event,
             )
-            print(f"{participant} drawn {drawn_participant}")
-            print(f"{participant.user.email} drawn {drawn_participant.user.email}")
+            # print(f"{participant} drawn {drawn_participant}")
+            # print(f"{participant.user.email} drawn {drawn_participant.user.email}")
         return redirect(success_url)
 
 
@@ -699,14 +708,10 @@ class ParticipantEventView(TemplateView, LoginRequiredMixin):
         else:
             can_collect = True
 
-        print(self.request.user.email)
-        print(type(self.request.user))
         participant = get_object_or_404(
             Participant, user__email=self.request.user.email, event=event
         )
         draw = get_object_or_404(Draw, event=event, participant=participant)
-        print(draw)
-        print(draw.collected)
 
         event_data = {
             "event_name": event.event_name,
