@@ -8,10 +8,13 @@ from allauth.account.utils import has_verified_email
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.html import strip_tags
 from django.views.generic import FormView, TemplateView
 from events.forms import (
     BulkUserRegistrationForm,
@@ -644,6 +647,21 @@ class EventActivate(TemplateView, LoginRequiredMixin):
             )
             # print(f"{participant} drawn {drawn_participant}")
             # print(f"{participant.user.email} drawn {drawn_participant.user.email}")
+
+        subject, from_email, to_email = (
+            "Subject",
+            "pbrqsl@gmail.com",
+            "pbronikowski@gmail.com",
+        )
+        html_content = render_to_string(
+            "event/email_template.html", {"context": "values"}
+        )
+        plain_message = strip_tags(html_content)
+
+        mail.send_mail(
+            subject, plain_message, from_email, [to_email], html_message=html_content
+        )
+
         return redirect(success_url)
 
 
