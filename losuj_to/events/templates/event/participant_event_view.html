@@ -3,6 +3,8 @@
 {% block content %}
   <h2>{{ event_data.event_name }}</h2>
 
+  <h3>Hello {{ event_data.participant }} </h3>
+
   <p>Event date: {{ event_data.event_date }}</p>
 
   {% if event_data.draw_date != None %}
@@ -11,14 +13,17 @@
   <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
 
   {% else %}
-
-    {% if not draw_collected %}
+    {% if not event_data.draw_collected %}
         You can now draw your gift taker!
-        <a href="draw">draw your name!</a>
-
+        <button id="collect_draw" data-draw-id="{{ event_data.draw_id }}">Draw!</button>
     {% else %}
-        Your drawn name is: {{ drawn_participant }}
+        Click <a href="#" id="unhide_name">here</a> to unhide your drawn name.
+
+        <h1 style="display: none" id="drawn_name">{{ event_data.drawn_participant }}</h1>
+
     {% endif %}
+
+    <h3>your hishlist....</h3>
 
 
   {% endif %}
@@ -116,14 +121,79 @@
 </style>
 
 
-<body>
+
 
     </div>
 
 
 
     <script>
+    function getCSRFTToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim()
+                if (cookie.substring(0, "csrftoken".length + 1) === ("csrftoken" + "=")) {
 
-    </script>
+                    cookieValue = decodeURIComponent(cookie.substring("csrftoken".length + 1));
+                    break;
+                    }
+                }
+            }
+        return cookieValue;
+       }
+    document.addEventListener('DOMContentLoaded', (event) => {
+
+        const collectDrawButton = document.getElementById('collect_draw');
+        const collectUnhideNameLink = document.getElementById('unhide_name');
+        const collectDrawnName = document.getElementById('drawn_name');
+
+        console.log(collectDrawButton)
+        if (collectDrawButton) {
+            collectDrawButton.addEventListener('click', function() {
+                console.log(getCSRFTToken());
+                const drawId = this.getAttribute('data-draw-id')
+                console.log(drawId);
+                fetch(`/api/draw_collected/${drawId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+                    body: JSON.stringify ({
+                        collected: true,
+                        }),
+                    })
+                .then(response => {
+                        if (response.ok) {
+                            alert('Gift collection status updated successfully!')
+                            console.log('OK')
+                            location.reload()
+                        } else {
+                            alert('Thre was an issue with yor request.')
+                        }
+                    });
+                })
+            };
+
+
+        if (collectUnhideNameLink) {
+            collectUnhideNameLink.addEventListener('click', function() {
+                if (collectDrawnName) {
+                    if (collectDrawnName.style.display === 'none') {
+                            collectDrawnName.style.display = 'block';
+                        } else {
+                            collectDrawnName.style.display = 'none';
+                        }
+                }
+            });
+        };
+    }
+        )
+
+
+
+ </script>
 
 {% endblock %}

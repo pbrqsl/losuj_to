@@ -1,5 +1,7 @@
 from datetime import date
 
+# from events.managers import CustomEventManager
+from django.core.signing import Signer
 from django.db import IntegrityError, models
 from users.models import CustomUser
 
@@ -24,9 +26,24 @@ class Event(models.Model):
         "self", blank=True, null=True, on_delete=models.CASCADE
     )
     confirmed = models.BooleanField(default=False)
+    token = models.CharField(max_length=255, blank=True, null=True)
+    # objects = CustomEventManager()
 
     def __str__(self) -> str:
         return self.event_name
+
+    def save(self, *args, **kwargs) -> None:
+        super().save(*args, **kwargs)
+        signer = Signer()
+        print("--------------")
+        print(self.id)
+        token = signer.sign(self.id)
+        token = token[4:]
+        print(token)
+        self.token = token
+
+        super().save()
+        print("--------------")
 
 
 # class Draw(models.Model):

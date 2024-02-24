@@ -7,6 +7,10 @@ def get_event_by_pk(event_id):
     return get_object_or_404(Event, id=event_id)
 
 
+def get_event_by_hash(event_hash):
+    return get_object_or_404(Event, token=event_hash)
+
+
 def get_and_validate_event(event: Event):
     is_valid = True
     participants_queryset = get_list_or_404(Participant, event=event)

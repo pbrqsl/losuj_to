@@ -26,6 +26,7 @@ from users.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("events/", include("events.urls")),
+    path("api/", include("api.urls")),
     path("", include("users.urls")),
     path(
         "accounts/social/signup/",

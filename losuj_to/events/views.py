@@ -24,7 +24,7 @@ from events.forms import (
 from events.models import Draw, Event, Exclusion, Participant
 from users.models import CustomUser
 
-from .helpers import get_and_validate_event, get_event_by_pk
+from .helpers import get_and_validate_event, get_event_by_hash, get_event_by_pk
 
 
 class EventCreateView(LoginRequiredMixin, FormView):
@@ -51,7 +51,7 @@ class EventCreateView(LoginRequiredMixin, FormView):
                 self.template_name,
                 context={
                     "form": self.form_class,
-                    "timezones": self.common_timezones,
+                    # "timezones": self.common_timezones,
                 },
             )
         messages.add_message(
@@ -669,9 +669,22 @@ class EventDeactivate(TemplateView, LoginRequiredMixin):
 class ParticipantEventView(TemplateView, LoginRequiredMixin):
     template_name = "event/participant_event_view.html"
 
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def get_event(self):
         event_id = self.kwargs.get("pk")
-        event = get_event_by_pk(event_id=event_id)
+        event_hash = self.kwargs.get("hash")
+
+        if event_id is not None:
+            print("by id")
+            return get_event_by_pk(event_id=event_id)
+        elif event_hash is not None:
+            print("by hash")
+            return get_event_by_hash(event_hash=event_hash)
+        else:
+            raise Http404
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        # event_id = self.kwargs.get("pk")
+        event = self.get_event()
         can_collect = False
 
         if not event.confirmed:
@@ -707,6 +720,7 @@ class ParticipantEventView(TemplateView, LoginRequiredMixin):
             "drawn_participant": draw.drawn_participant.name,
             "participant": participant.name,
             "can_collect": can_collect,
+            "draw_id": draw.id,
         }
         print(event_data)
         return render(request, self.template_name, context={"event_data": event_data})

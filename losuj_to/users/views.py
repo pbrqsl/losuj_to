@@ -43,11 +43,14 @@ class CustomLoginView(LoginView):
 
     def get(self, request, *args, **kwargs):
         token = request.GET.get("token")
+        next_url = request.GET.get("next")
         if not token:
             return super().get(self, request, *args, **kwargs)
         user = authenticate(request, token=token)
         if user:
             login(request, user)
+            if next_url is not None:
+                return redirect(next_url)
             return redirect(reverse("home"))
         else:
             return redirect(reverse("login"))

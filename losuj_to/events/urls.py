@@ -24,6 +24,11 @@ urlpatterns = [
     path("event_summary/<int:pk>", EventSummarry.as_view(), name="event_summary"),
     path("event_view/<int:pk>", ParticipantEventView.as_view(), name="event_view"),
     path(
+        "event_view/<slug:hash>",
+        ParticipantEventView.as_view(),
+        name="event_view_by_hash",
+    ),
+    path(
         "event_update_participants/<int:pk>",
         EventParticipantsUpdateView.as_view(),
         name="event_participants_update",
