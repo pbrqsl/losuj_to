@@ -1,5 +1,6 @@
 import ast
 import json
+import time
 from datetime import datetime
 from typing import Any
 
@@ -8,14 +9,13 @@ from allauth.account.utils import has_verified_email
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.html import strip_tags
 from django.views.generic import FormView, TemplateView
+from events.celery_app import get_task_status
+from events.drawing.drawing import perform_drawing
 from events.forms import (
     BulkUserRegistrationForm,
     EventConfirmActivationForm,
@@ -23,15 +23,18 @@ from events.forms import (
     EventCreateForm,
     ExcludeParticipantsForm,
 )
-from events.models import Draw, Event, Exclusion, Participant
-from users.models import CustomUser
 
-from .helpers import (
-    event_draw,
+# from events.celery_app import send_invitation
+from events.helpers import (
+    confirm_event,
     get_and_validate_event,
     get_event_by_hash,
     get_event_by_pk,
+    send_invitation,
 )
+from events.mixins import EventOwnerMixin
+from events.models import Draw, EmailTask, Event, Exclusion, Participant
+from users.models import CustomUser
 
 
 class EventCreateView(LoginRequiredMixin, FormView):
@@ -121,17 +124,10 @@ class EventCreateView(LoginRequiredMixin, FormView):
         )
 
 
-class EventUpdateView(LoginRequiredMixin, FormView):
+class EventUpdateView(EventOwnerMixin, LoginRequiredMixin, FormView):
     form_class = EventCreateForm
     success_url = "event_summary"
     template_name = "event/event_information.html"
-
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        event_id = self.kwargs.get("pk")
-        event = get_event_by_pk(event_id=event_id)
-        if request.user != event.owner:
-            raise PermissionDenied("You are not authorized!")
-        return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self) -> dict[str, Any]:
         event_id = self.kwargs.get("pk")
@@ -152,6 +148,7 @@ class EventUpdateView(LoginRequiredMixin, FormView):
         event.event_name = form.cleaned_data["event_name"]
         event.event_location = form.cleaned_data["event_location"]
         event.event_date = form.cleaned_data["event_date"]
+        event.draw_date = form.cleaned_data["draw_date"]
         event.price_currency = form.cleaned_data["price_currency"]
         event.price_limit = form.cleaned_data["price_limit"]
         event.save()
@@ -240,18 +237,11 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin, LoginRequiredMi
         )
 
 
-class EventParticipantsUpdateView(FormView, LoginRequiredMixin):
+class EventParticipantsUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
     template_name = "event/participant_information.html"
     form_class = BulkUserRegistrationForm
     num_rows = 3
     success_url = "event_summary"
-
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        event_id = self.kwargs.get("pk")
-        event = get_event_by_pk(event_id=event_id)
-        if request.user != event.owner:
-            raise PermissionDenied("You are not authorized!")
-        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
@@ -415,18 +405,11 @@ class EventExcludesCreate(FormView, SuccessMessageMixin, LoginRequiredMixin):
         return redirect(success_url)
 
 
-class EventExcludesUpdate(FormView, LoginRequiredMixin):
+class EventExcludesUpdate(EventOwnerMixin, FormView, LoginRequiredMixin):
     template_name = "event/excludes_information.html"
     form_class = ExcludeParticipantsForm
     success_url = "event_summary"
     success_message = "yup"
-
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        event_id = self.kwargs.get("pk")
-        event = get_event_by_pk(event_id=event_id)
-        if request.user != event.owner:
-            raise PermissionDenied("You are not authorized!")
-        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
@@ -520,15 +503,12 @@ class EventExcludesUpdate(FormView, LoginRequiredMixin):
         return redirect(success_url)
 
 
-class EventSummarry(TemplateView, LoginRequiredMixin):
+class EventSummarry(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     template_name = "event/event_summary.html"
 
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        event_id = self.kwargs.get("pk")
-        event = get_event_by_pk(event_id=event_id)
-        if request.user != event.owner:
-            raise PermissionDenied("You are not authorized!")
-        return super().dispatch(request, *args, **kwargs)
+    def get_draws(self, event: Event):
+        draws = Draw.objects.filter(event=event)
+        return draws
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         self.request.session["create_state"] = "summary"
@@ -549,6 +529,17 @@ class EventSummarry(TemplateView, LoginRequiredMixin):
         participants = event_validate["participants"]
         excludes = event_validate["excludes"]
         errors = event_validate["errors"]
+        print(event)
+        draws = self.get_draws(event)
+        print(draws)
+        print(participants)
+        for draw in draws:
+            print(draw.participant.user.email)
+            print(draw.collected)
+            for participant in participants:
+                if participant[0] == draw.participant.user.email:
+                    participant.append(draw.collected)
+        print(participants)
 
         for error in errors:
             messages.add_message(
@@ -568,104 +559,160 @@ class EventSummarry(TemplateView, LoginRequiredMixin):
         )
 
 
-class EventActivate(TemplateView, LoginRequiredMixin):
+class EventActivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     form_class = EventConfirmActivationForm
-    success_url = "event_summary"
+    success_url = "send_invitations"
+    no_action_url = "event_summary"
     template_name = "event/event_confirm_activation.html"
-
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        event_id = self.kwargs.get("pk")
-        event = get_event_by_pk(event_id=event_id)
-        if request.user != event.owner:
-            raise PermissionDenied("You are not authorized!")
-        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         form = self.form_class()
         return render(request, self.template_name, {"form": form})
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        print("post")
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
+        no_action_url = reverse(self.no_action_url, kwargs={"pk": event.id})
         event_validate = get_and_validate_event(event=event)
         # print(event_validate)
         if not event_validate["is_valid"]:
             print("not valid!")
-            return redirect(success_url)
+            return redirect(no_action_url)
+
         if event.confirmed:
             print("event already active!")
-            return redirect(success_url)
+            return redirect(no_action_url)
 
-        event.confirmed = True
-        event.save()
-
-        # def event_draw(drawing_dict, participants):
-        #     print('draw with function!')
-        #     counter = 0
-        #     continue_drawing = True
-        #     while continue_drawing:
-        #         counter += 1
-        #         print(f"try no {counter}")
-        #         if counter == 100:
-        #             continue_drawing = False
-        #         drawn_participants = []
-        #         draw_result = {}
-        #         for participant in participants:
-        #             drawing_pool = [
-        #                 x
-        #                 for x in drawing_dict[participant[0]]
-        #                 if x not in drawn_participants
-        #             ]
-        #             if len(drawing_pool) == 0:
-        #                 print("not succeded")
-        #                 continue
-        #             drawn_participant = random.choice(drawing_pool)
-        #             drawn_participants.append(drawn_participant)
-        #             draw_result[participant[0]] = drawn_participant
-
-        #         if len(draw_result) == len(participants):
-        #             continue_drawing = False
-        #     return draw_result
+        confirm_event(event=event)
 
         drawing_dict = event_validate["drawing_dict"]
         participants = event_validate["participants"]
 
-        draw_result = event_draw(drawing_dict=drawing_dict, participants=participants)
-        print(draw_result)
-
-        for key in draw_result:
-            participant = get_object_or_404(Participant, user__email=key, event=event)
-            drawn_participant = get_object_or_404(
-                Participant, user__email=draw_result[key], event=event
-            )
-            Draw.objects.create(
-                participant=participant,
-                drawn_participant=drawn_participant,
-                event=event,
-            )
-            # print(f"{participant} drawn {drawn_participant}")
-            # print(f"{participant.user.email} drawn {drawn_participant.user.email}")
-
-        subject, from_email, to_email = (
-            "Subject",
-            "pbrqsl@gmail.com",
-            "pbronikowski@gmail.com",
-        )
-        html_content = render_to_string(
-            "event/email_template.html", {"context": "values"}
-        )
-        plain_message = strip_tags(html_content)
-
-        mail.send_mail(
-            subject, plain_message, from_email, [to_email], html_message=html_content
+        perform_drawing(
+            event=event, participants=participants, drawing_dict=drawing_dict
         )
 
         return redirect(success_url)
 
 
-class EventDeactivate(TemplateView, LoginRequiredMixin):
+class EventSendInvitations(EventOwnerMixin, TemplateView, LoginRequiredMixin):
+    success_url = "send_invitations_wait"
+    # success_url = "event_summary"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        participants = Participant.objects.filter(event_id=event.id)
+        email_tasks = []
+        for participant in participants:
+            print(f"sending email for {participant}")
+
+            email_task_job = send_invitation(
+                request=request, participant=participant, event=event
+            )
+            # send_invitation.delay()
+            print(email_task_job.id)
+            email_tasks.append(email_task_job.id)
+            email_task = EmailTask(
+                task_uuid=email_task_job.id,
+                owner=event.owner,
+                event=event,
+                email=participant.user.email,
+                status="PEN",
+            )
+            email_task.save()
+
+        email_tasks = ",".join(email_tasks)
+        success_url = reverse(
+            self.success_url,
+            kwargs={
+                "pk": event.id,
+                "task_ids": email_tasks,
+            },
+        )
+        return redirect(success_url)
+
+
+class EmailSendInvitationsWait(EventOwnerMixin, TemplateView, LoginRequiredMixin):
+    success_url = "event_send_invitation_status_stream"
+    template_name = "event/event_invitation_wait.html"
+    redirect_url = "event_summary"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        # response = super().get(request, *args, **kwargs)
+        task_ids = self.kwargs.get("task_ids")
+        event_id = self.kwargs.get("pk")
+        task_ids_array = task_ids.split(",")
+        for task_id in task_ids_array:
+            task = get_object_or_404(EmailTask, task_uuid=task_id)
+            if task.owner != request.user:
+                raise PermissionDenied
+
+        print(f"event_id: {event_id}")
+        email_tasks_pending = EmailTask.objects.filter(event_id=event_id, status="PEN")
+        print(email_tasks_pending)
+        if len(email_tasks_pending) == 0:
+            print("no tasks with pending state")
+            redirect_url = reverse(self.redirect_url, kwargs={"pk": event_id})
+            print(f"redirecting to success url: {redirect_url}")
+            return redirect(redirect_url)
+
+        return render(
+            self.request,
+            self.template_name,
+            {"task_ids": task_ids, "event_id": event_id},
+        )
+
+
+class EmailSendInvitationsWaitStream(TemplateView, LoginRequiredMixin):
+    success_url = "event_summary"
+    # template_name = "event/get_email_status.html"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        task_ids = self.kwargs.get("task_ids")
+        # event_id = self.kwargs.get("pk")
+
+        def event_stream(task_ids):
+            task_ids_converted = task_ids.split(",")
+            print(f"event_stream: {task_ids}")
+            print(f"user: {request.user}")
+            waiting = True
+            no_of_tasks = len(task_ids_converted)
+            no_of_tasks_completed = 0
+            print(no_of_tasks)
+            print(self.request)
+            i = 0
+            while waiting:
+                i += 1
+                time.sleep(1)
+                for task_id in task_ids_converted:
+                    task_status = get_task_status(task_id=task_id)
+                    task_state = task_status.state
+                    if task_state == "PENDING":
+                        body = f"{task_id}: {task_state}"
+                        yield f"data: {body}\n\n"
+                    else:
+                        email_task = EmailTask.objects.get(task_uuid=task_id)
+                        email_task.status = "OK"
+                        email_task.save()
+                        no_of_tasks_completed += 1
+
+                        if no_of_tasks_completed == no_of_tasks:
+                            body = "Emails sent"
+                            request.session["email_status"] = "done"
+                            waiting = False
+                        else:
+                            body = f"{task_id}: {task_state}"
+                        yield f"data: {body}\n\n"
+
+        return StreamingHttpResponse(
+            event_stream(task_ids=task_ids), content_type="text/event-stream"
+        )
+        # return super().get(request, *args, **kwargs)
+
+
+class EventDeactivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     # set confirmed to FALSE
     # delete drawing results
     form_class = EventConfirmDeactivationForm
@@ -715,6 +762,7 @@ class ParticipantEventView(TemplateView, LoginRequiredMixin):
         can_collect = False
 
         if not event.confirmed:
+            print("not confirmed")
             raise Http404
 
         if event.draw_date:
@@ -747,3 +795,32 @@ class ParticipantEventView(TemplateView, LoginRequiredMixin):
         }
         print(event_data)
         return render(request, self.template_name, context={"event_data": event_data})
+
+
+class ListOfEvents(LoginRequiredMixin, TemplateView):
+    template_name = "event/event_list.html"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        print(request.user)
+        owned_events = Event.objects.filter(owner=request.user)
+        participating = Participant.objects.filter(user__email=request.user)
+        participated_events = []
+
+        print(participating)
+        print(owned_events)
+        participating_events_list = participating.values_list(
+            "event", flat=True
+        ).distinct()
+        print(participating_events_list)
+        participated_events = Event.objects.filter(pk__in=participating_events_list)
+        print(participated_events)
+
+        print(participated_events)
+        return render(
+            request,
+            self.template_name,
+            context={
+                "owned_events": owned_events,
+                "participated_events": participated_events,
+            },
+        )

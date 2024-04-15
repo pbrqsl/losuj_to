@@ -1,44 +1,27 @@
 {% extends 'website/base.html' %}
 
 {% block content %}
-  <h2>Event Summary</h2>
-  <p>Event Name: {{ event_data.event_name }}</p>
-  <p>Event date: {{ event_data.event_date }}</p>
-  <p>Draw date: {{ event_data.draw_date }}</p>
-  <p>Confirmed: {{ event_data.confirmed }}</p>
-
-  {% if event_data.event_location != '' %}
-  <p>Event Location: {{ event_data.event_location }}</p>
-
-  {% endif %}
-  <p><a href='{% url "event_update" pk=event_data.event_id %}'>edit event details</a></p>
-  <p>Participants:</p>
-  {% for participant in participants %}
-  {{participant.1}}
-  {{participant.2}}
-    {% if participant.2 %}
-    draw taken
-    {% else %}
-    draw not taken. <a href=#>Send a reminder.</a>
-    {% endif %}
-    </br>
-
+  <h2>Event List</h2>
+  {%for event in owned_events%}
+        <p>{{event.event_name}}
+        {{event.owner}}
+        {{user}}
+        <a href='{% url "event_summary" pk=event.id %}'>manage event</a>
+        {% if event in participated_events %}
+        <a href='{% url "event_view" pk=event.id %}'>go to event</a>
+        {% endif %}
+        </p>
   {% endfor %}
-  <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>edit paticipants</a></p>
+  {%for event in participated_events%}
+        {% if event not in owned_events %}
+        <p>{{event.event_name}}
+            {{event.owner}}
+            {{user}}
+        <a href='{% url "event_view" pk=event.id %}'>go to event</a>
+        </p>
+        {% endif %}
+  {% endfor %}
 
-  {% if excludes %}
-    <p>Excludes:</p>
-    {% for participant, excluded_list in excludes.items %}
-        {% for excluded in excluded_list %}
-            {{participant}} cannot draw {{excluded}} <br>
-        {% endfor %}
-
-    {% endfor %}
-
-{% endif %}
-  <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit od add excludes</a></p>
-  <p><a href='{% url "event_toggle_active" pk=event_data.event_id %}'>activate the event</a> (any updates will not be possible)</p>
-  <p><a href='{% url "event_deactivate" pk=event_data.event_id %}'>deactivate event</a> (all draw results will be cancelled)</p>
 
 <style>
     .container {

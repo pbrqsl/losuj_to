@@ -1,5 +1,7 @@
 from django.urls import path
 from events.views import (
+    EmailSendInvitationsWait,
+    EmailSendInvitationsWaitStream,
     EventActivate,
     EventCreateView,
     EventDeactivate,
@@ -7,8 +9,10 @@ from events.views import (
     EventExcludesUpdate,
     EventParticipantsCreateView,
     EventParticipantsUpdateView,
+    EventSendInvitations,
     EventSummarry,
     EventUpdateView,
+    ListOfEvents,
     ParticipantEventView,
 )
 
@@ -47,6 +51,26 @@ urlpatterns = [
         "event_deactivate/<int:pk>",
         EventDeactivate.as_view(),
         name="event_deactivate",
+    ),
+    path(
+        "send_invitations/<int:pk>",
+        EventSendInvitations.as_view(),
+        name="send_invitations",
+    ),
+    path(
+        "send_invitations_wait/<int:pk>/<str:task_ids>",
+        EmailSendInvitationsWait.as_view(),
+        name="send_invitations_wait",
+    ),
+    path(
+        "event_list/",
+        ListOfEvents.as_view(),
+        name="event_list",
+    ),
+    path(
+        "status_stream/<int:pk>/<str:task_ids>",
+        EmailSendInvitationsWaitStream.as_view(),
+        name="event_send_invitation_status_stream",
     ),
     # path("event_excludes_update/")
 ]

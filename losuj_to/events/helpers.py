@@ -1,16 +1,39 @@
-import random
-
 from django.shortcuts import get_list_or_404, get_object_or_404
-
-from .models import Event, Exclusion, Participant
+from django.template.loader import render_to_string
+from django.urls import reverse
+from events.celery_app import send_invitation_mail
+from events.models import Event, Exclusion, Participant
 
 
 def get_event_by_pk(event_id):
+    print("getting event...")
+    event = Event.objects.get(id=event_id)
+    print(event)
+    # return event
     return get_object_or_404(Event, id=event_id)
 
 
 def get_event_by_hash(event_hash):
     return get_object_or_404(Event, token=event_hash)
+
+
+def get_exclude_pool(participant: Participant, event: Event):
+    event_id = event.id
+    participant_excludes = Exclusion.objects.filter(
+        participant_id=participant.id
+    ).filter(event_id=event_id)
+    if not participant_excludes:
+        return []
+    return [exclude.excluded_participant for exclude in participant_excludes]
+
+
+def exludes_queryset_to_dict(excludes_queryset):
+    excludes = {}
+    for exclude in excludes_queryset:
+        if exclude.participant.name not in excludes:
+            excludes[exclude.participant.name] = []
+        excludes[exclude.participant.name].append(exclude.excluded_participant.name)
+    return excludes
 
 
 def get_and_validate_event(event: Event):
@@ -38,43 +61,31 @@ def get_and_validate_event(event: Event):
             "The number of participants is currently to low to use exclude list. Please add participants to make excludes valid again.",
         )
         validation_result["is_valid"] = False
-        print(validation_result["is_valid"])
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaa!!!!!!!!!!!!!!!!!!!!!!!")
         return validation_result
 
-    else:
-        excludes = {}
-        for exclude in excludes_queryset:
-            if exclude.participant.name not in excludes:
-                excludes[exclude.participant.name] = []
-            excludes[exclude.participant.name].append(exclude.excluded_participant.name)
+    excludes = exludes_queryset_to_dict(excludes_queryset=excludes_queryset)
 
     drawing_pools = []
     drawing_dict = {}
+
     for participant in participants_queryset:
-        event_id = event.id
-        participant_excludes = Exclusion.objects.filter(
-            participant_id=participant.id
-        ).filter(event_id=event_id)
-        if not participant_excludes:
-            exclude_pool = []
-        else:
-            exclude_pool = [
-                exclude.excluded_participant for exclude in participant_excludes
-            ]
+        exclude_pool = get_exclude_pool(participant=participant, event=event)
 
         drawing_pool = [
             candidate.user.email
             for candidate in participants_queryset
             if candidate != participant and candidate not in exclude_pool
         ]
-        drawing_pools.append(drawing_pool)
-        drawing_dict[participant.user.email] = drawing_pool
+
         if len(drawing_pool) < 2:
             errors += (
                 f"Exlusions for participant {participant} are to strict. Drawing names is not possible!",
             )
             validation_result["is_valid"] = False
+            return validation_result
+
+        drawing_pools.append(drawing_pool)
+        drawing_dict[participant.user.email] = drawing_pool
 
     validation_result["excludes"] = excludes
     validation_result["drawing_dict"] = drawing_dict
@@ -88,25 +99,63 @@ def get_and_validate_event(event: Event):
     return validation_result
 
 
-def event_draw(drawing_dict, participants):
-    counter = 0
-    continue_drawing = True
-    while continue_drawing:
-        counter += 1
-        if counter == 100:
-            continue_drawing = False
-        drawn_participants = []
-        draw_result = {}
-        for participant in participants:
-            drawing_pool = [
-                x for x in drawing_dict[participant[0]] if x not in drawn_participants
-            ]
-            if len(drawing_pool) == 0:
-                continue
-            drawn_participant = random.choice(drawing_pool)
-            drawn_participants.append(drawn_participant)
-            draw_result[participant[0]] = drawn_participant
+def confirm_event(event):
+    if not event.confirmed:
+        event.confirmed = True
+        event.save()
 
-        if len(draw_result) == len(participants):
-            continue_drawing = False
-    return draw_result
+
+def send_invitation(request, participant, event):
+    # from events.models import Participant, Event
+    # from django.urls import reverse
+    # from django.template.loader import render_to_string
+
+    from django.utils.html import strip_tags
+
+    url_prefix = reverse("login")
+    url_prefix = request.build_absolute_uri(url_prefix)
+    invite_url = f"{url_prefix}?token={participant.user.user_token}&next=/events/event_view/{event.token}"
+    subject = f"{participant.name}, you are invited to {event.event_name}"
+    from_email = "pbrqsl@gmail.com"
+    # to_email = participant.user.email
+    to_email = "pbronikowski@gmail.com"  #
+    html_content = render_to_string(
+        "event/email_template.html",
+        {
+            "invite_url": invite_url,
+            "participant_name": participant.name,
+        },
+    )
+    plain_message = strip_tags(html_content)
+    print("celery send email just pre sending email")
+
+    task = send_invitation_mail.delay(
+        subject=subject,
+        plain_message=plain_message,
+        from_email=from_email,
+        to_email=to_email,
+        html_content=html_content,
+    )
+    return task
+
+
+# @email_queue.task()
+# def send_invitation(request: HttpRequest, participant: Participant, event: Event):
+#     url_prefix = reverse('login')
+#     url_prefix = request.build_absolute_uri(url_prefix)
+#     invite_url = f"{url_prefix}?token={participant.user.user_token}&next=/events/event_view/{event.token}"
+#     subject = f"{participant.name}, you are invited to {event.event_name}"
+#     from_email = "pbrqsl@gmail.com"
+#     #to_email = participant.user.email
+#     to_email = "pbronikowski@gmail.com"
+#     html_content = render_to_string(
+#         "event/email_template.html", {
+#                 "invite_url": invite_url,
+#                 "participant_name":  participant.name,
+#                 }
+#     )
+#     plain_message = strip_tags(html_content)
+#     mail.send_mail(
+#         subject, plain_message, from_email, [to_email], html_message=html_content
+#     )
+#     #time.sleep(1)

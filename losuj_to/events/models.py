@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 
 # from events.managers import CustomEventManager
@@ -102,3 +103,16 @@ class Exclusion(models.Model):
         return (
             f"{self.participant} excludes {self.excluded_participant} in {self.event}"
         )
+
+
+class EmailTask(models.Model):
+    class Status(models.TextChoices):
+        OK = "OK", "US Dollars"
+        NOK = "NOK", "Not send"
+        PEN = "PEN", "Pending"
+
+    task_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    email = models.EmailField()
+    status = models.CharField(max_length=3, choices=Status.choices, null=True)
