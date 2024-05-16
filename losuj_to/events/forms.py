@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
@@ -34,7 +36,13 @@ class EventCreateForm(forms.Form):
         draw_date = cleaned_data.get("draw_date")
         if draw_date and draw_date.date() >= event_date:
             print("Draw date must occur before the event date.")
-            raise ValidationError("Draw date must occur before the event date.")
+            self.add_error("draw_date", "Draw date must occur before the event date.")
+            # raise ValidationError("Draw date must occur before the event date.")
+        date_now = datetime.now().date()
+        if event_date < date_now:
+            print("Event occurs in the past!")
+            self.add_error("event_date", "Event cannot occur in the past!")
+            # raise ValidationError("Event cannot occur in the past!")
         return cleaned_data
 
 

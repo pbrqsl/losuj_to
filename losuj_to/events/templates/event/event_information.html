@@ -8,10 +8,15 @@
 
     <form method="post">
         {% csrf_token %}
+        <div class="fieldWrapper">
+
         {% for field in form %}
-    <div class="fieldWrapper">
-        <p>{{ field.errors }}
+
+
         {{ field.label_tag }} {{ field }}
+        {% for error in field.errors %}
+             {{ error }}
+        {% endfor %}
         {% if field.help_text %}
           <p class="help" id="{{ field.auto_id }}_helptext">
             {{ field.help_text|safe }}

@@ -4,7 +4,9 @@
   <h2>Event Summary</h2>
   <p>Event Name: {{ event_data.event_name }}</p>
   <p>Event date: {{ event_data.event_date }}</p>
+  {% if event_data.draw_date %}
   <p>Draw date: {{ event_data.draw_date }}</p>
+  {% endif %}
   <p>Confirmed: {{ event_data.confirmed }}</p>
 
   {% if event_data.event_location != '' %}
@@ -24,21 +26,39 @@
     </br>
 
   {% endfor %}
-  <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>edit paticipants</a></p>
 
+  {% if event_data.confirmed %}
+  <p><i>In order to add or edit pareticipants you should deactivate event first.</i></p>
+
+  {% else %}
+
+  <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>edit paticipants</a></p>
+  {% endif %}
+
+
+
+  <p>Excludes:</p>
   {% if excludes %}
-    <p>Excludes:</p>
+
     {% for participant, excluded_list in excludes.items %}
         {% for excluded in excluded_list %}
             {{participant}} cannot draw {{excluded}} <br>
         {% endfor %}
 
     {% endfor %}
-
+{% else %}
+<p>Currently there is no excludes set for this event.</p>
 {% endif %}
-  <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit od add excludes</a></p>
-  <p><a href='{% url "event_toggle_active" pk=event_data.event_id %}'>activate the event</a> (any updates will not be possible)</p>
-  <p><a href='{% url "event_deactivate" pk=event_data.event_id %}'>deactivate event</a> (all draw results will be cancelled)</p>
+
+
+{% if event_data.confirmed %}
+    <p><i>In order to add or edit existing excludes you should deactivate event first.</i></p>
+    <p><a href='{% url "event_deactivate" pk=event_data.event_id %}'>deactivate event</a> (all draw results will be cancelled)</p>
+{% else %}
+
+    <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit or add excludes</a></p>
+    <p><a href='{% url "event_toggle_active" pk=event_data.event_id %}'>activate the event</a> (any updates will not be possible)</p>
+{% endif %}
 
 <style>
     .container {

@@ -10,7 +10,13 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.http import Http404, HttpRequest, HttpResponse, StreamingHttpResponse
+from django.http import (
+    Http404,
+    HttpRequest,
+    HttpResponse,
+    HttpResponseNotAllowed,
+    StreamingHttpResponse,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import FormView, TemplateView
@@ -248,6 +254,11 @@ class EventParticipantsUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin)
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
+
+        if event.confirmed:
+            print("event_confirmed")
+            return HttpResponseNotAllowed("Not allowed")
+
         event_data = {}
         event_data["event_name"] = event.event_name
         event_data["event_location"] = ""
@@ -416,6 +427,9 @@ class EventExcludesUpdate(EventOwnerMixin, FormView, LoginRequiredMixin):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
+        if event.confirmed:
+            print("event_confirmed")
+            return HttpResponseNotAllowed("Not allowed")
 
         draw_date = (
             event.draw_date.strftime("%Y-%m-%dT%H:%M:%S") if event.draw_date else None
@@ -516,6 +530,7 @@ class EventSummarry(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         self.request.session["create_state"] = "summary"
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
+
         event_data = {
             "event_name": event.event_name,
             "event_location": "",
@@ -570,6 +585,19 @@ class EventActivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         form = self.form_class()
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        date_now = datetime.now().date()
+
+        if event.event_date < date_now:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                "You cannot activate the event which occurs in the past!",
+            )
+            no_action_url = reverse(self.no_action_url, kwargs={"pk": event.id})
+            return redirect(no_action_url)
+
         return render(request, self.template_name, {"form": form})
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -808,6 +836,12 @@ class ParticipantEventView(TemplateView, LoginRequiredMixin):
 
         if not event.confirmed:
             print("not confirmed")
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                "The event you are looking for does not exist or is not active!",
+            )
+            return redirect(reverse("home"))
             raise Http404
 
         if event.draw_date:
