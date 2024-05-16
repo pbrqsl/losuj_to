@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333333;
+        }
+        .container {
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .content {
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Welcome!</h2>
+        </div>
+        <div class="content">
+            <p>Hello {{ participant_name }},</p>
+            <p>You are receiving this email because you are the participant of event {{ event_name }} and you haven't drawn the person yet.</p>
+
+            <p>Here is the link to the event details: <strong>{{ invite_url }}</strong></p>
+            <p>Thank you for your attention.</p>
+        </div>
+    </div>
+</body>
+</html>

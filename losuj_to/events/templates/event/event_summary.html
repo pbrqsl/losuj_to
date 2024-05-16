@@ -15,11 +15,11 @@
   <p>Participants:</p>
   {% for participant in participants %}
   {{participant.1}}
-  {{participant.2}}
-    {% if participant.2 %}
+  {{participant.3}}
+    {% if participant.3 %}
     draw taken
     {% else %}
-    draw not taken. <a href=#>Send a reminder.</a>
+    draw not taken. <a href='{% url "send_reminder" pk=event_data.event_id participant_id=participant.2 %}'>Send a reminder.</a>
     {% endif %}
     </br>
 

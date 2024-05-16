@@ -41,3 +41,4 @@ virtualenv==20.25.0
 flower
 celery
 redis
+django4-background-tasks

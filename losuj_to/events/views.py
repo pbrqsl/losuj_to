@@ -30,7 +30,9 @@ from events.helpers import (
     get_and_validate_event,
     get_event_by_hash,
     get_event_by_pk,
+    get_participant_by_id,
     send_invitation,
+    send_raminder,
 )
 from events.mixins import EventOwnerMixin
 from events.models import Draw, EmailTask, Event, Exclusion, Participant
@@ -529,6 +531,7 @@ class EventSummarry(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         participants = event_validate["participants"]
         excludes = event_validate["excludes"]
         errors = event_validate["errors"]
+
         print(event)
         draws = self.get_draws(event)
         print(draws)
@@ -572,6 +575,7 @@ class EventActivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
+        print("pre_send_invitations_event_id")
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
         no_action_url = reverse(self.no_action_url, kwargs={"pk": event.id})
         event_validate = get_and_validate_event(event=event)
@@ -622,6 +626,47 @@ class EventSendInvitations(EventOwnerMixin, TemplateView, LoginRequiredMixin):
                 status="PEN",
             )
             email_task.save()
+
+        email_tasks = ",".join(email_tasks)
+        success_url = reverse(
+            self.success_url,
+            kwargs={
+                "pk": event.id,
+                "task_ids": email_tasks,
+            },
+        )
+        return redirect(success_url)
+
+
+class EventSendReminderSingle(EventOwnerMixin, TemplateView, LoginRequiredMixin):
+    success_url = "send_invitations_wait"
+    # success_url = "event_summary"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        event_id = self.kwargs.get("pk")
+        participant_id = self.kwargs.get("participant_id")
+        event = get_event_by_pk(event_id=event_id)
+        participant = get_participant_by_id(participant_id=participant_id)
+        # event = participant.event
+        # participants = Participant.objects.filter(event_id=event.id)
+        email_tasks = []
+
+        print(f"sending email for {participant}")
+
+        email_task_job = send_raminder(
+            request=request, participant=participant, event=event
+        )
+        # send_invitation.delay()
+        print(email_task_job.id)
+        email_tasks.append(email_task_job.id)
+        email_task = EmailTask(
+            task_uuid=email_task_job.id,
+            owner=event.owner,
+            event=event,
+            email=participant.user.email,
+            status="PEN",
+        )
+        email_task.save()
 
         email_tasks = ",".join(email_tasks)
         success_url = reverse(

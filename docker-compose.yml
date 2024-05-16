@@ -46,6 +46,22 @@ services:
       - network_no_internet
       - network_internet
 
+  celery-beat:
+    build: .
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=losuj_to.settings
+
+    #command: celery -A events.celery_app:email_queue worker -l info
+    command: celery -A events.celery_app:email_queue beat -l info
+    volumes:
+      - ./losuj_to/:/losuj_to/
+    depends_on:
+      - app
+      - redis
+    networks:
+      - network_no_internet
+      - network_internet
 
   redis:
     image: redis:7-alpine

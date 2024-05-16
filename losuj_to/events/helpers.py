@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -11,6 +13,11 @@ def get_event_by_pk(event_id):
     print(event)
     # return event
     return get_object_or_404(Event, id=event_id)
+
+
+def get_participant_by_id(participant_id):
+    print("getting participant")
+    return get_object_or_404(Participant, id=participant_id)
 
 
 def get_event_by_hash(event_hash):
@@ -54,7 +61,7 @@ def get_and_validate_event(event: Event):
     }
 
     for participant in participants_queryset:
-        participants.append([participant.user.email, participant.name])
+        participants.append([participant.user.email, participant.name, participant.id])
 
     if excludes_queryset and len(participants_queryset) < 4:
         errors += (
@@ -102,6 +109,7 @@ def get_and_validate_event(event: Event):
 def confirm_event(event):
     if not event.confirmed:
         event.confirmed = True
+        event.confirmed_date = datetime.now().date()
         event.save()
 
 
@@ -121,12 +129,46 @@ def send_invitation(request, participant, event):
     to_email = "pbronikowski@gmail.com"  #
     html_content = render_to_string(
         "event/email_template.html",
+        {"invite_url": invite_url, "participant_name": participant.name},
+    )
+    plain_message = strip_tags(html_content)
+    print(plain_message)
+    print("celery send email just pre sending email")
+
+    task = send_invitation_mail.delay(
+        subject=subject,
+        plain_message=plain_message,
+        from_email=from_email,
+        to_email=to_email,
+        html_content=html_content,
+    )
+    return task
+
+
+def send_raminder(request, participant, event):
+    # from events.models import Participant, Event
+    # from django.urls import reverse
+    # from django.template.loader import render_to_string
+
+    from django.utils.html import strip_tags
+
+    url_prefix = reverse("login")
+    url_prefix = request.build_absolute_uri(url_prefix)
+    invite_url = f"{url_prefix}?token={participant.user.user_token}&next=/events/event_view/{event.token}"
+    subject = f"{participant.name}, pelase visit the page of event: {event.event_name}"
+    from_email = "pbrqsl@gmail.com"
+    # to_email = participant.user.email
+    to_email = "pbronikowski@gmail.com"  #
+    html_content = render_to_string(
+        "event/email_template.html",
         {
             "invite_url": invite_url,
             "participant_name": participant.name,
+            "event_name": event.event_name,
         },
     )
     plain_message = strip_tags(html_content)
+    print(plain_message)
     print("celery send email just pre sending email")
 
     task = send_invitation_mail.delay(

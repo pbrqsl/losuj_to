@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "users.management.commands.update_site",
+    # "background_task",
 ]
 
 MIDDLEWARE = [
@@ -202,3 +203,11 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 # EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+
+# CELERY_BEAT_SCHEDULE = {
+#     "Schedule_1": {
+#         "task": "events.celery_app.some_background_task",
+#         "schedule": crontab(minute="*/1"),
+#     }
+
+# }

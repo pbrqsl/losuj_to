@@ -27,6 +27,7 @@ class Event(models.Model):
         "self", blank=True, null=True, on_delete=models.CASCADE
     )
     confirmed = models.BooleanField(default=False)
+    confirmed_date = models.DateField(default=None, null=True, blank=True)
     token = models.CharField(max_length=255, blank=True, null=True)
     # objects = CustomEventManager()
 

@@ -10,6 +10,7 @@ from events.views import (
     EventParticipantsCreateView,
     EventParticipantsUpdateView,
     EventSendInvitations,
+    EventSendReminderSingle,
     EventSummarry,
     EventUpdateView,
     ListOfEvents,
@@ -56,6 +57,11 @@ urlpatterns = [
         "send_invitations/<int:pk>",
         EventSendInvitations.as_view(),
         name="send_invitations",
+    ),
+    path(
+        "send_reminder/<int:pk>/<int:participant_id>",
+        EventSendReminderSingle.as_view(),
+        name="send_reminder",
     ),
     path(
         "send_invitations_wait/<int:pk>/<str:task_ids>",
