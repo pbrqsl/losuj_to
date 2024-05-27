@@ -4,34 +4,27 @@
 {% load tz %}
 {% get_current_timezone as TIME_ZONE %}
 <h1>Event details </h1>
-<div id="form-container">
-
-    <form method="post">
+    <form method="post" id="form1">
         {% csrf_token %}
         <div class="fieldWrapper">
-
         {% for field in form %}
-
-
-        {{ field.label_tag }} {{ field }}
-        {% for error in field.errors %}
-             {{ error }}
-        {% endfor %}
+            <div class="form-group">
+            {{ field.label_tag }} {{ field }}
+            </div>
+            {% for error in field.errors %}
+                 {{ error }}
+            {% endfor %}
         {% if field.help_text %}
           <p class="help" id="{{ field.auto_id }}_helptext">
             {{ field.help_text|safe }}
           </p>
         {% endif %}
+        {% endfor %}
 
-        </p>
-    </div>
-{% endfor %}
+        <button type="submit">Go!</button></div>
 
-
-
-
-        <button type="submit">Go!</button>
     </form>
+
     <p>Note: If no drawing date is provided, the drawing will be initiated by the owner at a later stage.</p>
     <p>Note: If drawing date is provided, it has to be scheduled at least one day before the event date.</p>
 </div>

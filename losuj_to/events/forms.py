@@ -8,18 +8,44 @@ from events.models import Event
 
 
 class EventCreateForm(forms.Form):
-    event_name = forms.CharField(max_length=100, required=True, label="Event Name")
+    event_name = forms.CharField(
+        max_length=100,
+        required=True,
+        label="Event Name",
+        widget=forms.TextInput(
+            attrs={
+                "class": "rounded1",
+                "placeholder": "Event Name",
+            }
+        ),
+    )
     event_location = forms.CharField(
-        max_length=255, required=False, label="Event Location"
+        max_length=255,
+        required=False,
+        label="Event Location",
+        widget=forms.TextInput(
+            attrs={
+                "class": "rounded1",
+                "placeholder": "Event Location",
+            }
+        ),
     )
     event_date = forms.DateField(
         required=True,
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+                "class": "rounded1",
+                "placeholder": "date of exchange gift",
+            }
+        ),
         label="Date of exchanging gifts",
     )
     draw_date = forms.DateTimeField(
         required=False,
-        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        widget=forms.DateTimeInput(
+            attrs={"type": "datetime-local", "class": "rounded1"}
+        ),
         label="Date of Drawing Names",
     )
     price_limit = forms.IntegerField(required=False, label="Price Limit for the Gift")
@@ -44,6 +70,11 @@ class EventCreateForm(forms.Form):
             self.add_error("event_date", "Event cannot occur in the past!")
             # raise ValidationError("Event cannot occur in the past!")
         return cleaned_data
+
+    # def __init__(*args, **kwargs) -> None:
+    # super().__init__(*args, **kwargs)
+    # for visible_field in self.visible_fields():
+    #     visible_field.field.widget.attrs["class"] = "email"
 
 
 class BulkUserRegistrationForm(forms.Form):
