@@ -7,9 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  runs-on: ubuntu-latest
-
   static-analysis:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.12
@@ -25,6 +24,7 @@ jobs:
         ruff . --fix --exit-non-zero-on-fix
 
   check-commit-message:
+    runs-on: ubuntu-latest
     name: Check Commit Message
     steps:
       - name: Check Commit Type
