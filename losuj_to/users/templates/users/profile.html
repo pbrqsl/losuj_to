@@ -1,0 +1,44 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+{% load socialaccount %}
+{% if user.is_authenticated %}
+<div>
+    <p>
+        <h1>Some user's data</h1>
+        <p>email: {{ user.email }}</p>
+        <p>last login: {{ user.last_login }}</p>
+        {% if is_user_verified %}
+            <p class="confirmed">your email is confirmed</p>
+        {% else %}
+            <p class="unconfirmed">your email is not confirmed</p>
+            <p><a href="{% url 'resend_confirmation_email' %}" class="btn btn-primary">Send activation link</a></p>
+        {% endif %}
+        </p>
+        {% if is_local_user %}
+            <a href="{% url 'password_change_view' %}" class="btn btn-primary">Change password</a>
+        {% endif %}
+    </p>
+</div>
+
+<form method="post" action="{% url 'socialaccount_connections' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Link with Social App!</button>
+</form>
+
+{% else %}
+<p>You are currently not logged in.</p>
+
+<p>
+    <a href="{% url 'login' %}" class="btn btn-primary">Log in!</a> or
+    <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+</p>
+
+
+
+{% endif  %}
+
+
+
+
+{% endblock %}
