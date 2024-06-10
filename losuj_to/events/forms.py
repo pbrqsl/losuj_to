@@ -12,12 +12,7 @@ class EventCreateForm(forms.Form):
         max_length=100,
         required=True,
         label="Event Name",
-        widget=forms.TextInput(
-            attrs={
-                "class": "rounded1",
-                "placeholder": "Event Name",
-            }
-        ),
+        widget=forms.TextInput(attrs={"class": "event_input"}),
     )
     event_location = forms.CharField(
         max_length=255,
@@ -25,8 +20,7 @@ class EventCreateForm(forms.Form):
         label="Event Location",
         widget=forms.TextInput(
             attrs={
-                "class": "rounded1",
-                "placeholder": "Event Location",
+                "class": "event_input",
             }
         ),
     )
@@ -35,8 +29,7 @@ class EventCreateForm(forms.Form):
         widget=forms.DateInput(
             attrs={
                 "type": "date",
-                "class": "rounded1",
-                "placeholder": "date of exchange gift",
+                "class": "event_input",
             }
         ),
         label="Date of exchanging gifts",
@@ -44,14 +37,19 @@ class EventCreateForm(forms.Form):
     draw_date = forms.DateTimeField(
         required=False,
         widget=forms.DateTimeInput(
-            attrs={"type": "datetime-local", "class": "rounded1"}
+            attrs={"type": "datetime-local", "class": "event_input"}
         ),
         label="Date of Drawing Names",
     )
-    price_limit = forms.IntegerField(required=False, label="Price Limit for the Gift")
+    price_limit = forms.IntegerField(
+        required=False,
+        label="Price Limit for the Gift",
+        widget=forms.NumberInput(attrs={"class": "event_input"}),
+    )
+
     price_currency = forms.ChoiceField(
         choices=Event.Currency.choices,
-        widget=forms.Select(),
+        widget=forms.Select(attrs={"class": "event_input"}),
         label="Price Limit currency",
     )
 

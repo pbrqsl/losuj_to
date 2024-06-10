@@ -115,7 +115,7 @@ ul, li {
   width: 50%;
 }
 
-label {
+label_ {
   width: 20%;
   height: 46px;
   border-radius: 12px;
@@ -128,7 +128,51 @@ label {
   padding: 0px 20px;
   margin-bottom: 20px;
 }
+.label1 {
+  width: 20%;
+  height: 46px;
+  border-radius: 12px;
+  background-color: #0e1f26;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  font-weight: 300;
+  color: #2a2a2a;
+  padding: 0px 20px;
+  margin-bottom: 20px;
+}
+.event_input {
+	color: black;
+  padding-left: 10px;
+  padding-right: 10px;
+	height: 45px;
+	width: 300px;
+	border: none;
+	border-radius: 32px;
+	background-color: #69caeb;
+	margin-top: -10px;
+	position: absolute;
 
+	left:200px;
+}
+
+.event_info {
+	color: rgb(255, 244, 244);
+	height: 55px;
+	width: 505px;
+	border: none;
+  vertical-align: text-top;
+  padding-top: 15px;
+  padding-left: 15px;
+  padding-right: 5px;
+	font-size: 15px;
+	font-weight: 300;
+	border-radius: 32px;
+	background-color: #404fa3;
+
+	position: relative;
+	margin-top: 10px;
+}
 
 
 header, nav, section, article, aside, footer, hgroup {
@@ -872,7 +916,8 @@ Banner Style
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  padding: 226px 0px 120px 0px;
+  /* padding: 226px 0px 20px 0px; */
+  padding: 122px 0px 20px 0px;
   position: relative;
   overflow: hidden;
 }

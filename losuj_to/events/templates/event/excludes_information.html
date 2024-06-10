@@ -18,9 +18,9 @@
   {% endfor %}
 
 
-<!--
+
 <style>
-    .container {
+    .container-excludes {
         display: grid;
         width: 70%;
         display: none;
@@ -102,7 +102,7 @@
         margin-left: 5px;
     }
 </style>
--->
+
 
 <body>
     {% if not excludes %}
@@ -118,7 +118,7 @@
     </form>
 
 
-    <div class="container" id="grid_container">
+    <div class="container-excludes" id="grid_container">
     {% else %}
     {{ excludes |json_script:'excludes' }}
     <form id="unhide_form" class="form-checkbox">
