@@ -79,21 +79,23 @@
             {% for participant in rows_range %}
 
                     <div class="form-row">
-                        <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">
-                        <input type="text" name="name[]" placeholder="Name" onkeydown="checkTab(event)">
+                        <!-- <fieldset class="participant-fieldset"> -->
+                        <input type="text" name="email[]" class="participant-input-email" placeholder="Email" onblur="validateEmail(event)">
+                        <input type="text" name="name[]" class="participant-input-name" placeholder="Name" onkeydown="checkTab(event)">
                         <span class="remove-row-btn" onclick="removeRow(this)" style="display: none;">(-)</span>
                         {% if forloop.counter == rows_range|length %}
                         <span class="add-row-btn" onclick="addRow()" style="display: yes;">(+)</span>
                         {% else %}
                         <span class="add-row-btn" onclick="addRow()" style="display: none;">(+)</span>
                         {% endif %}
+                        <!-- </fieldset> -->
                     </div>
                 {% endfor %}
             {% endif %}
         </form>
     </div>
 
-    <button id="submit-btn" onclick="submitForm()" disabled>Submit</button>
+    <button id="submit-btn" class="form-button-custom-participants" onclick="submitForm()" disabled>Submit</button>
 
     <script>
 

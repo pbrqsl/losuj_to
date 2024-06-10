@@ -141,6 +141,57 @@ label_ {
   padding: 0px 20px;
   margin-bottom: 20px;
 }
+
+.participant-input-email {
+	color: black;
+  padding-left: 10px;
+  padding-right: 10px;
+	height: 45px;
+	width: 300px;
+	border: none;
+	border-radius: 32px 0px 0px 32px;
+	background-color: #69caeb;
+	margin-top: -10px;
+  margin-right: 10px;
+	/* position: absolute; */
+
+	/* left:200px; */
+}
+
+.participant-input-name {
+	color: black;
+  padding-left: 10px;
+  padding-right: 10px;
+	height: 45px;
+	width: 150px;
+	border: none;
+	border-radius: 0px 32px 32px 0px;
+	background-color: #69caeb;
+	margin-top: -10px;
+	/* position: absolute; */
+
+	/* left:10px; */
+}
+
+.participant-fieldset {
+  display: flex;
+	color: rgb(255, 244, 244);
+	height: 55px;
+	width: 505px;
+	border: none;
+  vertical-align: text-top;
+  padding-top: 15px;
+  padding-left: 5px;
+  padding-right: 5px;
+	font-size: 15px;
+	font-weight: 300;
+	border-radius: 32px;
+	background-color: #404fa3;
+
+	position: relative;
+	margin-top: 10px;
+}
+
 .event_input {
 	color: black;
   padding-left: 10px;
@@ -155,6 +206,7 @@ label_ {
 
 	left:200px;
 }
+
 
 .event_info {
 	color: rgb(255, 244, 244);
@@ -998,6 +1050,50 @@ Banner Style
   outline: none;
   border: none;
 }
+
+.form-button-custom-1 {
+  /* position: absolute; */
+  right: 10px;
+  top: 10px;
+  width: 505px;
+  height: 55px;
+  /* display: inline-block; */
+  background-color: #404fa3;
+  font-size: 15px;
+  font-weight: 300;
+  color: rgb(255, 244, 244);
+  text-transform: capitalize;
+  padding: 12px 235px;
+  border-radius: 32px;
+  letter-spacing: 0.25px;
+  outline: none;
+  margin-top: 10px;
+  border: none;
+}
+.form-button-custom-participants {
+  /* position: absolute; */
+  right: 10px;
+  top: 10px;
+  width: 100px;
+  height: 55px;
+  /* display: inline-block; */
+  background-color: #404fa3;
+  font-size: 15px;
+  font-weight: 300;
+  color: rgb(255, 244, 244);
+  text-transform: capitalize;
+  padding: 12px 10px;
+  border-radius: 32px;
+  letter-spacing: 0.25px;
+  outline: none;
+  margin-top: 10px;
+  border: none;
+}
+
+
+
+
+
 
 .main-banner .left-content form input {
   width: 470px;
