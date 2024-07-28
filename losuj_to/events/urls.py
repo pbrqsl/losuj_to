@@ -78,5 +78,4 @@ urlpatterns = [
         EmailSendInvitationsWaitStream.as_view(),
         name="event_send_invitation_status_stream",
     ),
-    # path("event_excludes_update/")
 ]

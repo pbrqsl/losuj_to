@@ -1,13 +1,11 @@
 import uuid
 from datetime import date
 
-# from events.managers import CustomEventManager
 from django.core.signing import Signer
 from django.db import IntegrityError, models
 from users.models import CustomUser
 
 
-# Create your models here.
 class Event(models.Model):
     class Currency(models.TextChoices):
         USD = "USD", "US Dollars"
@@ -29,7 +27,6 @@ class Event(models.Model):
     confirmed = models.BooleanField(default=False)
     confirmed_date = models.DateField(default=None, null=True, blank=True)
     token = models.CharField(max_length=255, blank=True, null=True)
-    # objects = CustomEventManager()
 
     def __str__(self) -> str:
         return self.event_name
@@ -41,12 +38,6 @@ class Event(models.Model):
         token = token[4:]
         self.token = token
         super().save()
-
-
-# class Draw(models.Model):
-#     draw_date = models.DateTimeField()
-#     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-#     draw_taken = models.BooleanField()
 
 
 class Participant(models.Model):

@@ -14,7 +14,6 @@ def event_draw(drawing_dict, participants):
             drawing_pool = [
                 x for x in drawing_dict[participant[0]] if x not in drawn_participants
             ]
-            # to lambda
             if len(drawing_pool) == 0:
                 continue
             drawn_participant = random.choice(drawing_pool)

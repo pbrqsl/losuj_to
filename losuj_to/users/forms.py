@@ -56,14 +56,6 @@ class CustomPasswordResetForm(PasswordResetForm):
             print(f">geataddr: {getattr(u, email_field_name)}")
             print(f"{email} provided as paramater")
 
-        # response = (
-        #         u
-        #         for u in active_users
-        #         and _unicode_ci_compare(email, getattr(u, email_field_name))
-        #     )
-        # print(response)
-
-        # return response
         return (
             u
             for u in active_users

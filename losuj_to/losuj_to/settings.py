@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--3p4r-9=rte+xqzn6&dbe#%_l(&tpba50t2bzztk$2yevx0c9p"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -106,8 +106,7 @@ DATABASES = {
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
-        # "HOST": env("DB_HOST"),
-        "HOST": "db",
+        "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
     }
 }
@@ -187,18 +186,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
-# EMAIL_HOST=env("EMAIL_HOST")
+EMAIL_HOST = env("EMAIL_HOST")
 
-EMAIL_HOST = "smtp.gmail.com"
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = 587
 EMAIL_USE_TML = True
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
-# EMAIL_HOST="smtp.gmail.com"
-# EMAIL_HOST_USER="pbrqsl"
-# EMAIL_HOST_PASSWORD="zgarolnfcjpyhwfn"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 

@@ -55,24 +55,17 @@ class EventCreateForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        # print(cleaned_data.get("timezone"))
         event_date = cleaned_data.get("event_date")
         draw_date = cleaned_data.get("draw_date")
         if draw_date and draw_date.date() >= event_date:
             print("Draw date must occur before the event date.")
             self.add_error("draw_date", "Draw date must occur before the event date.")
-            # raise ValidationError("Draw date must occur before the event date.")
+
         date_now = datetime.now().date()
         if event_date < date_now:
             print("Event occurs in the past!")
             self.add_error("event_date", "Event cannot occur in the past!")
-            # raise ValidationError("Event cannot occur in the past!")
         return cleaned_data
-
-    # def __init__(*args, **kwargs) -> None:
-    # super().__init__(*args, **kwargs)
-    # for visible_field in self.visible_fields():
-    #     visible_field.field.widget.attrs["class"] = "email"
 
 
 class BulkUserRegistrationForm(forms.Form):
@@ -87,16 +80,8 @@ class BulkUserRegistrationForm(forms.Form):
     class Meta:
         exclude = ["participants"]
 
-    # def clean(self) -> dict[str, Any]:
-    #     data = self.cleaned_data
-    #     print("running clean")
-    #     return data
-
     def clean_participants(self):
-        # print("running clean_participants")
-        # print(self.cleaned_data["participants"])
         data = self.cleaned_data["participants"]
-        # print(data)
         data_export = []
         rows = data.split("\n")
         validator = EmailValidator()
@@ -107,16 +92,12 @@ class BulkUserRegistrationForm(forms.Form):
             name = row.split(",")[1].rstrip()
 
             if email in emails:
-                # print("doubled email")
                 raise ValidationError("Emails cannot repeat.")
             if name in names:
-                # print("doubled name")
                 raise ValidationError("Name value cannot repeat")
             emails.append(email)
             if name != "":
                 names.append(name)
-            # print(emails)
-            # print(names)
             try:
                 validator(email)
                 print(f"{email} validated")
@@ -130,15 +111,12 @@ class BulkUserRegistrationForm(forms.Form):
 
 class ExcludeParticipantsForm(forms.Form):
     class Meta:
-        # model = MyModel
         widgets = {
             "any_field": HiddenInput(),
         }
 
     def clean(self):
-        # print(">>clean")
         cleaned_data = super().clean
-        # print(cleaned_data.__dict__)
         return cleaned_data
 
 

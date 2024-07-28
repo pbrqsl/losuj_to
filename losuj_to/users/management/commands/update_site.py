@@ -13,4 +13,3 @@ class Command(BaseCommand):
         site.domain = "127.0.0.1:8000"
         site.name = "127.0.0.1:8000"
         site.save(update_fields=("domain", "name"))
-        # return super().handle(*args, **options)

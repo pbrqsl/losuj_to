@@ -70,8 +70,3 @@ class TestLoginView(TestCase):
         self.assertEqual(users.count(), 0)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(common)
-
-    # def test_user_register_using_manager(self):
-    #     get_user_model().objects.create(email=self.email, password=self.password)
-    #     users = get_user_model().objects.all()
-    #     self.assertEqual(users.count(), 1)

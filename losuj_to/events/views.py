@@ -29,8 +29,6 @@ from events.forms import (
     EventCreateForm,
     ExcludeParticipantsForm,
 )
-
-# from events.celery_app import send_invitation
 from events.helpers import (
     confirm_event,
     get_and_validate_event,
@@ -50,26 +48,16 @@ class EventCreateView(LoginRequiredMixin, FormView):
     success_url = "event_participants"
     template_name = "event/event_information.html"
 
-    # common_timezones = {
-    # "London": "Europe/London",
-    # "Paris": "Europe/Paris",
-    # "New York": "America/New_York",
-    # }
-
     def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
-        # TODO: change this to dispatch
         user = self.request.user
-
         email = user.email or None
 
         if has_verified_email(user, email):
-            # return super().get(request, *args, **kwargs)
             return render(
                 self.request,
                 self.template_name,
                 context={
                     "form": self.form_class,
-                    # "timezones": self.common_timezones,
                 },
             )
         messages.add_message(
@@ -81,12 +69,8 @@ class EventCreateView(LoginRequiredMixin, FormView):
         return redirect("home")
 
     def post(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
-        # print(self.request.POST["timezone"])
         if not self.request.POST["draw_date"]:
             return super().post(request, *args, **kwargs)
-
-        # draw_date = parse_datetime(self.request.POST["draw_date"])
-        # request.session["django_timezone"] = request.POST["timezone"]
 
         return super().post(request, *args, **kwargs)
 
@@ -170,7 +154,6 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin, LoginRequiredMi
     success_url = "event_excludes"
     success_message = "yup"
     num_rows = 3
-    # exclude = "participants"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any):
         form = self.form_class
@@ -211,7 +194,6 @@ class EventParticipantsCreateView(FormView, SuccessMessageMixin, LoginRequiredMi
                 name = participant[0]
             try:
                 user = CustomUser.objects.get(email=email)
-                # user = get_object_or_404(CustomUser, email=email)
             except ObjectDoesNotExist:
                 user = CustomUser.objects.create_user(email=email, password=None)
 
@@ -322,10 +304,6 @@ class EventParticipantsUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin)
                 participant.delete()
 
         self.request.session["participant_data"] = parcipants_data
-        # return redirect(self.success_url)
-        # if self.request.session["create_state"] != "in_progress":
-
-        # return redirect("event_excludes")
         return redirect(self.success_url, pk=self.kwargs.get("pk"))
 
     def form_invalid(self, form):
@@ -380,7 +358,6 @@ class EventExcludesCreate(FormView, SuccessMessageMixin, LoginRequiredMixin):
         )
 
     def form_valid(self, form):
-        # event = Event.objects.get(id=self.request.session["event_data"]["event_id"])
         event_id = self.request.session["event_data"]["event_id"]
         event = get_object_or_404(Event, id=event_id)
 
@@ -389,7 +366,6 @@ class EventExcludesCreate(FormView, SuccessMessageMixin, LoginRequiredMixin):
             self.request.session["excludes"] = "{}"
 
             return redirect(success_url)
-        # pariticipant_list = self.request.session["participant_data"]
         exclude_dict = json.loads(self.request.POST["excludes"])
         self.request.session["excludes"] = exclude_dict
 
@@ -397,20 +373,16 @@ class EventExcludesCreate(FormView, SuccessMessageMixin, LoginRequiredMixin):
             print(f'exclude: "{exclude}"')
             print(f"event: {event.id}")
 
-            # participant = Participant.objects.get(user__email=exclude, event=event)
             participant = get_object_or_404(
                 Participant, user__email=exclude, event=event
             )
 
             for excluded in exclude_dict[exclude]:
-                # excluded_participant = Participant.objects.get(
-                #     user__email=excluded, event=event
-                # )
                 excluded_participant = get_object_or_404(
                     Participant, user__email=excluded, event=event
                 )
                 print(f"{participant}: {excluded_participant}")
-                Exclusion.objects.create(  # TODO 1: change to get_or_create
+                Exclusion.objects.create(
                     event=event,
                     participant=participant,
                     excluded_participant=excluded_participant,
@@ -487,16 +459,12 @@ class EventExcludesUpdate(EventOwnerMixin, FormView, LoginRequiredMixin):
         print(exclude_dict)
         exclusion_pairs = []
         for exclude in exclude_dict:
-            # participant = Participant.objects.get(user__email=exclude, event=event)
             participant = get_object_or_404(
                 Participant, user__email=exclude, event=event
             )
 
             for excluded in exclude_dict[exclude]:
                 exclusion_pairs.append([exclude, excluded])
-                # excluded_participant = Participant.objects.get(
-                #     user__email=excluded, event=event
-                # )
                 excluded_participant = get_object_or_404(
                     Participant, user__email=excluded, event=event
                 )
@@ -607,7 +575,6 @@ class EventActivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
         no_action_url = reverse(self.no_action_url, kwargs={"pk": event.id})
         event_validate = get_and_validate_event(event=event)
-        # print(event_validate)
         if not event_validate["is_valid"]:
             print("not valid!")
             return redirect(no_action_url)
@@ -630,7 +597,6 @@ class EventActivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 
 class EventSendInvitations(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     success_url = "send_invitations_wait"
-    # success_url = "event_summary"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
@@ -643,7 +609,6 @@ class EventSendInvitations(EventOwnerMixin, TemplateView, LoginRequiredMixin):
             email_task_job = send_invitation(
                 request=request, participant=participant, event=event
             )
-            # send_invitation.delay()
             print(email_task_job.id)
             email_tasks.append(email_task_job.id)
             email_task = EmailTask(
@@ -668,15 +633,12 @@ class EventSendInvitations(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 
 class EventSendReminderSingle(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     success_url = "send_invitations_wait"
-    # success_url = "event_summary"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
         participant_id = self.kwargs.get("participant_id")
         event = get_event_by_pk(event_id=event_id)
         participant = get_participant_by_id(participant_id=participant_id)
-        # event = participant.event
-        # participants = Participant.objects.filter(event_id=event.id)
         email_tasks = []
 
         print(f"sending email for {participant}")
@@ -684,7 +646,6 @@ class EventSendReminderSingle(EventOwnerMixin, TemplateView, LoginRequiredMixin)
         email_task_job = send_raminder(
             request=request, participant=participant, event=event
         )
-        # send_invitation.delay()
         print(email_task_job.id)
         email_tasks.append(email_task_job.id)
         email_task = EmailTask(
@@ -713,7 +674,6 @@ class EmailSendInvitationsWait(EventOwnerMixin, TemplateView, LoginRequiredMixin
     redirect_url = "event_summary"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        # response = super().get(request, *args, **kwargs)
         task_ids = self.kwargs.get("task_ids")
         event_id = self.kwargs.get("pk")
         task_ids_array = task_ids.split(",")
@@ -740,11 +700,9 @@ class EmailSendInvitationsWait(EventOwnerMixin, TemplateView, LoginRequiredMixin
 
 class EmailSendInvitationsWaitStream(TemplateView, LoginRequiredMixin):
     success_url = "event_summary"
-    # template_name = "event/get_email_status.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         task_ids = self.kwargs.get("task_ids")
-        # event_id = self.kwargs.get("pk")
 
         def event_stream(task_ids):
             task_ids_converted = task_ids.split(",")
@@ -782,12 +740,9 @@ class EmailSendInvitationsWaitStream(TemplateView, LoginRequiredMixin):
         return StreamingHttpResponse(
             event_stream(task_ids=task_ids), content_type="text/event-stream"
         )
-        # return super().get(request, *args, **kwargs)
 
 
 class EventDeactivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
-    # set confirmed to FALSE
-    # delete drawing results
     form_class = EventConfirmDeactivationForm
     success_url = "event_summary"
     template_name = "event/event_confirm_deactivation.html"
@@ -797,8 +752,6 @@ class EventDeactivate(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
-
-        # event_validate = get_and_validate_event(event=event)
 
         if not event.confirmed:
             print("nothing to do")
@@ -830,7 +783,6 @@ class ParticipantEventView(TemplateView, LoginRequiredMixin):
             raise Http404
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        # event_id = self.kwargs.get("pk")
         event = self.get_event()
         can_collect = False
 

@@ -11,7 +11,6 @@ def get_event_by_pk(event_id):
     print("getting event...")
     event = Event.objects.get(id=event_id)
     print(event)
-    # return event
     return get_object_or_404(Event, id=event_id)
 
 
@@ -46,7 +45,6 @@ def exludes_queryset_to_dict(excludes_queryset):
 def get_and_validate_event(event: Event):
     is_valid = True
     participants_queryset = get_list_or_404(Participant, event=event)
-    # excludes_queryset = get_list_or_404(Exclusion, event=event)
     excludes_queryset = Exclusion.objects.filter(event=event)
 
     errors = []
@@ -114,10 +112,6 @@ def confirm_event(event):
 
 
 def send_invitation(request, participant, event):
-    # from events.models import Participant, Event
-    # from django.urls import reverse
-    # from django.template.loader import render_to_string
-
     from django.utils.html import strip_tags
 
     url_prefix = reverse("login")
@@ -125,8 +119,7 @@ def send_invitation(request, participant, event):
     invite_url = f"{url_prefix}?token={participant.user.user_token}&next=/events/event_view/{event.token}"
     subject = f"{participant.name}, you are invited to {event.event_name}"
     from_email = "pbrqsl@gmail.com"
-    # to_email = participant.user.email
-    to_email = "pbronikowski@gmail.com"  #
+    to_email = "pbronikowski@gmail.com"
     html_content = render_to_string(
         "event/email_template.html",
         {"invite_url": invite_url, "participant_name": participant.name},
@@ -146,10 +139,6 @@ def send_invitation(request, participant, event):
 
 
 def send_raminder(request, participant, event):
-    # from events.models import Participant, Event
-    # from django.urls import reverse
-    # from django.template.loader import render_to_string
-
     from django.utils.html import strip_tags
 
     url_prefix = reverse("login")
@@ -157,7 +146,6 @@ def send_raminder(request, participant, event):
     invite_url = f"{url_prefix}?token={participant.user.user_token}&next=/events/event_view/{event.token}"
     subject = f"{participant.name}, pelase visit the page of event: {event.event_name}"
     from_email = "pbrqsl@gmail.com"
-    # to_email = participant.user.email
     to_email = "pbronikowski@gmail.com"  #
     html_content = render_to_string(
         "event/email_template.html",
@@ -179,25 +167,3 @@ def send_raminder(request, participant, event):
         html_content=html_content,
     )
     return task
-
-
-# @email_queue.task()
-# def send_invitation(request: HttpRequest, participant: Participant, event: Event):
-#     url_prefix = reverse('login')
-#     url_prefix = request.build_absolute_uri(url_prefix)
-#     invite_url = f"{url_prefix}?token={participant.user.user_token}&next=/events/event_view/{event.token}"
-#     subject = f"{participant.name}, you are invited to {event.event_name}"
-#     from_email = "pbrqsl@gmail.com"
-#     #to_email = participant.user.email
-#     to_email = "pbronikowski@gmail.com"
-#     html_content = render_to_string(
-#         "event/email_template.html", {
-#                 "invite_url": invite_url,
-#                 "participant_name":  participant.name,
-#                 }
-#     )
-#     plain_message = strip_tags(html_content)
-#     mail.send_mail(
-#         subject, plain_message, from_email, [to_email], html_message=html_content
-#     )
-#     #time.sleep(1)

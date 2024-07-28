@@ -1,12 +1,9 @@
-# from events.helpers import get_event_by_pk
 from datetime import datetime
 
 from celery import Celery
 from celery.result import AsyncResult
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
-
-# os.environ.setdefault("DJANGO_SETTING_MODULE", "my_celery.settings")
 
 email_queue = Celery(
     "my_celery", broker="redis://redis:6379/0", backend="redis://redis:6379/0"
@@ -35,7 +32,6 @@ def check_not_collected_draws():
     logger.info(f"running background task {event}")
     subject = f"{event.id}, you are invited to {event.event_name}"  # noqa
     from_email = "pbrqsl@gmail.com"  # noqa
-    # to_email = participant.user.email
     to_email = "pbronikowski@gmail.com"  # noqa
     time_now = datetime.now().date()
     draws_not_collected = (
@@ -49,14 +45,6 @@ def check_not_collected_draws():
         logger.info(f"draws_date: {draw.event.event_date}")
         logger.info(f"days_diff: {time_diff.days}")
 
-    # html_content = render_to_string(
-    #     'event/email_template.html',
-    #     {
-    #         'invite_url': 'http://127.0.0.1:8000/login/?token=c4wwh1-7047d9d53735079d88e572ee565ff3c7&next=/events/event_view/ipEkyACnXNV4l78TfeejigMYb9Q8pBeeDWcZ-y1hk',
-    #         'participant_name': 'aaa',
-    #     },
-    # )
-    # plain_message = strip_tags(html_content)
     logger.info(f"draws_not_collected: {draws_not_collected}")
     # task = send_invitation_mail.delay(
     #     subject=subject,
@@ -64,6 +52,7 @@ def check_not_collected_draws():
     #     from_email=from_email,
     #     to_email=to_email,
     #     html_content=html_content,
+
     # )
     return "scheduled task test"
 
