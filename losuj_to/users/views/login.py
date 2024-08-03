@@ -8,7 +8,7 @@ from django.contrib.auth.views import LoginView
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.views.generic import View
+from django.views.generic import TemplateView, View
 from users.models import CustomUser
 
 
@@ -67,3 +67,20 @@ class CustomLogoutView(View):
     def get(self, request):
         logout(request)
         return redirect("home")
+
+
+class ProfileView(TemplateView):
+    template_name = "users/profile.html"
+
+    def get_context_data(self, **kwargs: Any):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["is_local_user"] = False
+        if not user.is_authenticated:
+            return context
+        context["is_user_verified"] = has_verified_email(user, user.email)
+        if not user.user_token:
+            return context
+        print("aa")
+        context["is_local_user"] = True
+        return context

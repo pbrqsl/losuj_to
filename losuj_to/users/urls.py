@@ -1,19 +1,20 @@
 from django.urls import path
-from users.views import (
-    BulkUserRegistration,
-    BulkUserRegistrationInput,
+from events.views import HomeView
+from users.views.login import CustomLoginView, CustomLogoutView, ProfileView
+from users.views.management import (
     CheckIfMailConfirmed,
     CustomPasswordChangeView,
     CustomPasswordReset,
     CustomPasswordResetComplete,
     CustomPasswordResetConfirm,
     CustomPasswordResetDone,
-    CustomRegisterView,
     CustomSendEmailConfirmation,
-    HomeView,
-    ProfileView,
 )
-from users.views_temp.login import CustomLoginView, CustomLogoutView
+from users.views.register import (
+    BulkUserRegistration,
+    BulkUserRegistrationInput,
+    CustomRegisterView,
+)
 
 urlpatterns = [
     path("login/", CustomLoginView.as_view(), name="login"),

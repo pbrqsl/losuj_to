@@ -43,6 +43,10 @@ from events.models import Draw, EmailTask, Event, Exclusion, Participant
 from users.models import CustomUser
 
 
+class HomeView(TemplateView):
+    template_name = "users/home.html"
+
+
 class EventCreateView(LoginRequiredMixin, FormView):
     form_class = EventCreateForm
     success_url = "event_participants"
