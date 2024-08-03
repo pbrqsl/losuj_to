@@ -3,8 +3,6 @@ from users.views import (
     BulkUserRegistration,
     BulkUserRegistrationInput,
     CheckIfMailConfirmed,
-    CustomLoginView,
-    CustomLogoutView,
     CustomPasswordChangeView,
     CustomPasswordReset,
     CustomPasswordResetComplete,
@@ -15,6 +13,7 @@ from users.views import (
     HomeView,
     ProfileView,
 )
+from users.views_temp.login import CustomLoginView, CustomLogoutView
 
 urlpatterns = [
     path("login/", CustomLoginView.as_view(), name="login"),
