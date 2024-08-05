@@ -10,11 +10,7 @@ from users.views.management import (
     CustomPasswordResetDone,
     CustomSendEmailConfirmation,
 )
-from users.views.register import (
-    BulkUserRegistration,
-    BulkUserRegistrationInput,
-    CustomRegisterView,
-)
+from users.views.register import CustomRegisterView
 
 urlpatterns = [
     path("login/", CustomLoginView.as_view(), name="login"),
@@ -52,15 +48,5 @@ urlpatterns = [
         "password_change/",
         CustomPasswordChangeView.as_view(),
         name="password_change_view",
-    ),
-    path(
-        "bulk_registration/",
-        BulkUserRegistration.as_view(),
-        name="bulk_registration",
-    ),
-    path(
-        "bulk_registration_input/",
-        BulkUserRegistrationInput.as_view(),
-        name="bulk_registration_input",
     ),
 ]

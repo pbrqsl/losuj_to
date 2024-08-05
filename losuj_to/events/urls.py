@@ -1,5 +1,6 @@
 from django.urls import path
 from events.views import (
+    BulkUserRegistration,
     EmailSendInvitationsWait,
     EmailSendInvitationsWaitStream,
     EventActivate,
@@ -24,6 +25,11 @@ urlpatterns = [
         "event_create_participants/",
         EventParticipantsCreateView.as_view(),
         name="event_participants",
+    ),
+    path(
+        "bulk_registration/",
+        BulkUserRegistration.as_view(),
+        name="bulk_registration",
     ),
     path("event_excludes/", EventExcludesCreate.as_view(), name="event_excludes"),
     path("event_summary/<int:pk>", EventSummarry.as_view(), name="event_summary"),

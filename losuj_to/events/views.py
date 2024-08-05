@@ -9,7 +9,7 @@ from allauth.account.utils import has_verified_email
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.http import (
     Http404,
     HttpRequest,
@@ -24,6 +24,7 @@ from events.celery_app import get_task_status
 from events.drawing.drawing import perform_drawing
 from events.forms import (
     BulkUserRegistrationForm,
+    BultUserRegistrationFormOld,
     EventConfirmActivationForm,
     EventConfirmDeactivationForm,
     EventCreateForm,
@@ -40,6 +41,7 @@ from events.helpers import (
 )
 from events.mixins import EventOwnerMixin
 from events.models import Draw, EmailTask, Event, Exclusion, Participant
+from users.forms import BultUserRegistrationForm
 from users.models import CustomUser
 
 
@@ -858,4 +860,38 @@ class ListOfEvents(LoginRequiredMixin, TemplateView):
                 "owned_events": owned_events,
                 "participated_events": participated_events,
             },
+        )
+
+
+class BulkUserRegistration(FormView):
+    form_class = BultUserRegistrationFormOld
+    template_name = "event/bulk_registration.html"
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        form = BultUserRegistrationForm()
+        return render(request, self.template_name, context={"form": form})
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        print("form_valid starts")
+        new_users = []
+        print(form.cleaned_data["new_users"])
+        print(type(form.cleaned_data["new_users"]))
+        for row in form.cleaned_data["new_users"]:
+            email = row.split(",")[0]
+            print(f"row: {email}")
+            if CustomUser.objects.filter(email=email):
+                print("user exists")
+                continue
+            try:
+                user = CustomUser.objects.create_user(email=email, password=None)
+                new_users.append(user)
+                print("user created")
+            except ValidationError:
+                pass
+        print(new_users)
+
+        return render(
+            self.request,
+            "event/bulk_registration_confirm.html",
+            {"new_users": new_users},
         )

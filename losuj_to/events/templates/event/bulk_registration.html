@@ -41,7 +41,7 @@
 <body>
 
     <div id="form-container">
-        <form action="{% url 'bulk_registration' %}" method="post">
+        <form method="post">
             {% csrf_token %}
             <div class="form-row">
                 <input type="text" name="email[]" placeholder="Email" onblur="validateEmail(event)">

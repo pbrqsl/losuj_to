@@ -109,6 +109,31 @@ class BulkUserRegistrationForm(forms.Form):
         return data_export
 
 
+class BultUserRegistrationFormOld(forms.Form):
+    new_users = forms.CharField(
+        max_length=1024, label="User data", required=True, widget=forms.Textarea
+    )
+
+    def clean_new_users(self):
+        print(self.cleaned_data["new_users"])
+        data = self.cleaned_data["new_users"]
+        data_export = []
+        rows = data.split("\n")
+        validator = EmailValidator()
+        print(f"printing rows:{rows}")
+        print(len(rows))
+        for row in rows:
+            email = row.split(",")[0]
+            try:
+                validator(email)
+                print(f"{email} validated")
+                data_export.append(email)
+            except Exception as e:
+                print(e)
+                pass
+        return data_export
+
+
 class ExcludeParticipantsForm(forms.Form):
     class Meta:
         widgets = {
