@@ -1,5 +1,5 @@
 from django.urls import path
-from events.views import HomeView
+from events.views.home import HomeView
 from users.views.login import CustomLoginView, CustomLogoutView, ProfileView
 from users.views.management import (
     CheckIfMailConfirmed,
