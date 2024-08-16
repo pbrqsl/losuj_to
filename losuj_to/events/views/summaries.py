@@ -41,17 +41,12 @@ class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         excludes = event_validate["excludes"]
         errors = event_validate["errors"]
 
-        print(event)
         draws = self.get_draws(event)
-        print(draws)
-        print(participants)
+
         for draw in draws:
-            print(draw.participant.user.email)
-            print(draw.collected)
             for participant in participants:
                 if participant[0] == draw.participant.user.email:
                     participant.append(draw.collected)
-        print(participants)
 
         for error in errors:
             messages.add_message(
@@ -79,10 +74,8 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
         event_hash = self.kwargs.get("hash")
 
         if event_id is not None:
-            print("by id")
             return get_event_by_pk(event_id=event_id)
         elif event_hash is not None:
-            print("by hash")
             return get_event_by_hash(event_hash=event_hash)
         else:
             raise Http404
@@ -92,7 +85,6 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
         can_collect = False
 
         if not event.confirmed:
-            print("not confirmed")
             messages.add_message(
                 self.request,
                 messages.ERROR,
@@ -129,7 +121,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "can_collect": can_collect,
             "draw_id": draw.id,
         }
-        print(event_data)
+
         return render(request, self.template_name, context={"event_data": event_data})
 
 
@@ -137,21 +129,16 @@ class EventListView(LoginRequiredMixin, TemplateView):
     template_name = "event/event_list.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        print(request.user)
         owned_events = Event.objects.filter(owner=request.user)
         participating = Participant.objects.filter(user__email=request.user)
         participated_events = []
 
-        print(participating)
-        print(owned_events)
         participating_events_list = participating.values_list(
             "event", flat=True
         ).distinct()
-        print(participating_events_list)
-        participated_events = Event.objects.filter(pk__in=participating_events_list)
-        print(participated_events)
 
-        print(participated_events)
+        participated_events = Event.objects.filter(pk__in=participating_events_list)
+
         return render(
             request,
             self.template_name,
