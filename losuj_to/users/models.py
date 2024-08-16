@@ -22,9 +22,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @classmethod
     def get_email_field_name(cls):
-        print("getting email")
         try:
-            print(cls.EMAIL_FIELD)
             return cls.EMAIL_FIELD
         except AttributeError:
             return "email"

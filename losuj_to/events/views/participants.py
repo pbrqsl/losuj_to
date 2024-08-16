@@ -31,7 +31,7 @@ class ParticipantCreateView(FormView, SuccessMessageMixin, LoginRequiredMixin):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any):
         form = self.form_class
         event_data = self.request.session["event_data"]
-        print(self.request.session.__dict__)
+
         if request.GET.get("participants"):
             participants = ast.literal_eval(request.GET.get("participants"))
             return render(
@@ -83,7 +83,6 @@ class ParticipantCreateView(FormView, SuccessMessageMixin, LoginRequiredMixin):
         raw_participants = form.data["participants"].split("\n")
         participants = []
         for participant in raw_participants:
-            print(participant)
             email = participant.split(",")[0].rstrip()
             name = participant.split(",")[1].rstrip()
             participants.append([email, name])
@@ -111,7 +110,6 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
         event = get_event_by_pk(event_id=event_id)
 
         if event.confirmed:
-            print("event_confirmed")
             return HttpResponseNotAllowed("Not allowed")
 
         event_data = {}
@@ -119,11 +117,11 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
         event_data["event_location"] = ""
         event_data["event_id"] = event.id
         participants_from_db = Participant.objects.filter(event=event)
-        print(participants_from_db)
+
         participants = []
         for participant in participants_from_db:
             participants.append([participant.user.email, participant.name])
-        print(event)
+
         return render(
             request,
             self.template_name,
@@ -140,7 +138,6 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
         parcipants_data = []
         participants = form.cleaned_data["participants"]
         for participant in participants:
-            created = False
             email = participant[0]
             name = participant[1]
             if name == "":
@@ -148,7 +145,6 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
             try:
                 user = CustomUser.objects.get(email=email)
             except ObjectDoesNotExist:
-                print("exception")
                 user = CustomUser.objects.create_user(email=email, password=None)
             try:
                 participant = Participant.objects.get(
@@ -157,23 +153,19 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
                 )
                 participant.name = name
                 participant.save()
-                print(f"user {email} existed, data updated")
+
             except ObjectDoesNotExist:
                 participant = Participant.objects.create(
                     user=user, event=event, name=name
                 )
-                created = True
-                print(f"user {email} created")
 
-            print(f"participant {email} existed: {created}")
             parcipants_data.append([email, name])
 
         participants_list = Participant.objects.filter(event=event)
         email_list = [data[0] for data in parcipants_data]
-        print(email_list)
+
         for participant in participants_list:
             if participant.user.email not in email_list:
-                print(f"{participant.user.email} to be removed!")
                 participant.delete()
 
         self.request.session["participant_data"] = parcipants_data
@@ -184,7 +176,6 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
         raw_participants = form.data["participants"].split("\n")
         participants = []
         for participant in raw_participants:
-            print(participant)
             email = participant.split(",")[0].rstrip()
             name = participant.split(",")[1].rstrip()
             participants.append([email, name])
@@ -216,10 +207,10 @@ class ParticipantExcludeCreateView(FormView, SuccessMessageMixin, LoginRequiredM
         participants = []
 
         participants_queryset = Participant.objects.filter(event_id=event_id)
-        print(participants_queryset)
+
         for participant_item in participants_queryset:
             participants.append([participant_item.user.email, participant_item.name])
-        print(participants)
+
         return render(
             request,
             self.template_name,
@@ -243,9 +234,6 @@ class ParticipantExcludeCreateView(FormView, SuccessMessageMixin, LoginRequiredM
         self.request.session["excludes"] = exclude_dict
 
         for exclude in exclude_dict:
-            print(f'exclude: "{exclude}"')
-            print(f"event: {event.id}")
-
             participant = get_object_or_404(
                 Participant, user__email=exclude, event=event
             )
@@ -254,7 +242,7 @@ class ParticipantExcludeCreateView(FormView, SuccessMessageMixin, LoginRequiredM
                 excluded_participant = get_object_or_404(
                     Participant, user__email=excluded, event=event
                 )
-                print(f"{participant}: {excluded_participant}")
+
                 Exclusion.objects.create(
                     event=event,
                     participant=participant,
@@ -273,7 +261,6 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
         if event.confirmed:
-            print("event_confirmed")
             return HttpResponseNotAllowed("Not allowed")
 
         draw_date = (
@@ -301,9 +288,8 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
             participants.append([participant_item.user.email, participant_item.name])
 
         excludes_queryset = Exclusion.objects.filter(event_id=event_id)
-        print(excludes_queryset)
+
         for exclude in excludes_queryset:
-            print(exclude.participant.user.email)
             if exclude.participant.user.email not in excludes:
                 excludes[exclude.participant.user.email] = [
                     exclude.excluded_participant.user.email
@@ -329,7 +315,7 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
         exclude_dict = json.loads(self.request.POST["excludes"])
         self.request.session["excludes"] = exclude_dict
-        print(exclude_dict)
+
         exclusion_pairs = []
         for exclude in exclude_dict:
             participant = get_object_or_404(
@@ -341,7 +327,7 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
                 excluded_participant = get_object_or_404(
                     Participant, user__email=excluded, event=event
                 )
-                print(f"{participant}: {excluded_participant}")
+
                 exclusion, created = Exclusion.objects.get_or_create(
                     event=event,
                     participant=participant,
@@ -369,23 +355,19 @@ class BulkUserRegistration(FormView):
         return render(request, self.template_name, context={"form": form})
 
     def form_valid(self, form: Any) -> HttpResponse:
-        print("form_valid starts")
         new_users = []
-        print(form.cleaned_data["new_users"])
-        print(type(form.cleaned_data["new_users"]))
+
         for row in form.cleaned_data["new_users"]:
             email = row.split(",")[0]
-            print(f"row: {email}")
+
             if CustomUser.objects.filter(email=email):
-                print("user exists")
                 continue
             try:
                 user = CustomUser.objects.create_user(email=email, password=None)
                 new_users.append(user)
-                print("user created")
+
             except ValidationError:
                 pass
-        print(new_users)
 
         return render(
             self.request,
