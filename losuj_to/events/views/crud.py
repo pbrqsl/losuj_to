@@ -52,7 +52,7 @@ class EventCreateView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         event_data = form.cleaned_data
-        print(form.cleaned_data)
+
         form.cleaned_data["draw_date"] = (
             event_data.get("draw_date").strftime("%Y-%m-%dT%H:%M:%S")
             if event_data.get("draw_date")
@@ -84,7 +84,6 @@ class EventCreateView(LoginRequiredMixin, FormView):
         return redirect(self.success_url)
 
     def form_invalid(self, form):
-        print("form invalid")
         return render(
             self.request,
             self.template_name,
@@ -150,16 +149,14 @@ class EventActivateView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
-        print("pre_send_invitations_event_id")
+
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
         no_action_url = reverse(self.no_action_url, kwargs={"pk": event.id})
         event_validate = get_and_validate_event(event=event)
         if not event_validate["is_valid"]:
-            print("not valid!")
             return redirect(no_action_url)
 
         if event.confirmed:
-            print("event already active!")
             return redirect(no_action_url)
 
         confirm_event(event=event)
@@ -180,13 +177,11 @@ class EventDeactivateView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
     template_name = "event/event_confirm_deactivation.html"
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        print("post")
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
         success_url = reverse(self.success_url, kwargs={"pk": event.id})
 
         if not event.confirmed:
-            print("nothing to do")
             return redirect(success_url)
 
         draw_results = Draw.objects.filter(event=event)

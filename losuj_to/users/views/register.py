@@ -17,8 +17,6 @@ class CustomRegisterView(SuccessMessageMixin, EmailConfirmationMixin, CreateView
         model = CustomUser
 
     def form_valid(self, form):
-        print(self.object)
-        print(form.cleaned_data)
         user = CustomUser.objects.create_user(
             email=form.cleaned_data["email"],
             password=form.cleaned_data["password1"],

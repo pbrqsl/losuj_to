@@ -10,5 +10,4 @@ class UpdateDrawCollected(UpdateAPIView):
     serializer_class = DrawSerializer
 
     def patch(self, request, *args, **kwargs):
-        print(request)
         return self.partial_update(request, *args, **kwargs)
