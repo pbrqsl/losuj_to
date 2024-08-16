@@ -8,14 +8,11 @@ from events.models import Event, Exclusion, Participant
 
 
 def get_event_by_pk(event_id):
-    print("getting event...")
-    event = Event.objects.get(id=event_id)
-    print(event)
+    # event = Event.objects.get(id=event_id)
     return get_object_or_404(Event, id=event_id)
 
 
 def get_participant_by_id(participant_id):
-    print("getting participant")
     return get_object_or_404(Participant, id=participant_id)
 
 
@@ -125,8 +122,6 @@ def send_invitation(request, participant, event):
         {"invite_url": invite_url, "participant_name": participant.name},
     )
     plain_message = strip_tags(html_content)
-    print(plain_message)
-    print("celery send email just pre sending email")
 
     task = send_invitation_mail.delay(
         subject=subject,
@@ -156,8 +151,6 @@ def send_raminder(request, participant, event):
         },
     )
     plain_message = strip_tags(html_content)
-    print(plain_message)
-    print("celery send email just pre sending email")
 
     task = send_invitation_mail.delay(
         subject=subject,

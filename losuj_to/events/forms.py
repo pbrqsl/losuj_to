@@ -58,12 +58,10 @@ class EventCreateForm(forms.Form):
         event_date = cleaned_data.get("event_date")
         draw_date = cleaned_data.get("draw_date")
         if draw_date and draw_date.date() >= event_date:
-            print("Draw date must occur before the event date.")
             self.add_error("draw_date", "Draw date must occur before the event date.")
 
         date_now = datetime.now().date()
         if event_date < date_now:
-            print("Event occurs in the past!")
             self.add_error("event_date", "Event cannot occur in the past!")
         return cleaned_data
 
@@ -100,10 +98,8 @@ class BulkUserRegistrationForm(forms.Form):
                 names.append(name)
             try:
                 validator(email)
-                print(f"{email} validated")
                 data_export.append([email, name])
-            except Exception as e:
-                print(e)
+            except Exception:
                 pass
 
         return data_export
@@ -115,21 +111,16 @@ class BultUserRegistrationFormOld(forms.Form):
     )
 
     def clean_new_users(self):
-        print(self.cleaned_data["new_users"])
         data = self.cleaned_data["new_users"]
         data_export = []
         rows = data.split("\n")
         validator = EmailValidator()
-        print(f"printing rows:{rows}")
-        print(len(rows))
         for row in rows:
             email = row.split(",")[0]
             try:
                 validator(email)
-                print(f"{email} validated")
                 data_export.append(email)
-            except Exception as e:
-                print(e)
+            except Exception:
                 pass
         return data_export
 
