@@ -52,9 +52,6 @@ class CustomPasswordResetForm(PasswordResetForm):
                 "is_active": True,
             }
         )
-        for u in active_users:
-            print(f">geataddr: {getattr(u, email_field_name)}")
-            print(f"{email} provided as paramater")
 
         return (
             u
@@ -71,8 +68,6 @@ class CustomPasswordResetForm(PasswordResetForm):
         to_email: str,
         html_email_template_name: str | None = ...,
     ) -> None:
-        print("send email triggered")
-        print(to_email)
         return super().send_mail(
             subject_template_name,
             email_template_name,
@@ -89,20 +84,17 @@ class BultUserRegistrationForm(forms.Form):
     )
 
     def clean_new_users(self):
-        print(self.cleaned_data["new_users"])
         data = self.cleaned_data["new_users"]
         data_export = []
         rows = data.split("\n")
         validator = EmailValidator()
-        print(f"printing rows:{rows}")
-        print(len(rows))
+
         for row in rows:
             email = row.split(",")[0]
             try:
                 validator(email)
-                print(f"{email} validated")
+
                 data_export.append(email)
-            except Exception as e:
-                print(e)
+            except Exception:
                 pass
         return data_export
