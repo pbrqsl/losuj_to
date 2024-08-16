@@ -1,6 +1,7 @@
 import time
 from typing import Any
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
@@ -105,7 +106,11 @@ class InvitationWaitView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 
         if len(email_tasks_pending) == 0:
             redirect_url = reverse(self.redirect_url, kwargs={"pk": event_id})
-
+            messages.add_message(
+                self.request,
+                messages.INFO,
+                "Invite sent",
+            )
             return redirect(redirect_url)
 
         return render(
@@ -121,29 +126,30 @@ class InvitationStreamWaitView(TemplateView, LoginRequiredMixin):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         task_ids = self.kwargs.get("task_ids")
 
+        def email_status_set_OK(task_id):
+            email_task = EmailTask.objects.get(task_uuid=task_id)
+            email_task.status = "OK"
+            email_task.save()
+
+        def get_task_state(task_id):
+            task_status = get_task_status(task_id=task_id)
+            return task_status.state
+
         def event_stream(task_ids):
             task_ids_converted = task_ids.split(",")
-
             waiting = True
             no_of_tasks = len(task_ids_converted)
             no_of_tasks_completed = 0
-
-            i = 0
             while waiting:
-                i += 1
                 time.sleep(1)
                 for task_id in task_ids_converted:
-                    task_status = get_task_status(task_id=task_id)
-                    task_state = task_status.state
+                    task_state = get_task_state(task_id=task_id)
                     if task_state == "PENDING":
                         body = f"{task_id}: {task_state}"
                         yield f"data: {body}\n\n"
                     else:
-                        email_task = EmailTask.objects.get(task_uuid=task_id)
-                        email_task.status = "OK"
-                        email_task.save()
+                        email_status_set_OK(task_id=task_id)
                         no_of_tasks_completed += 1
-
                         if no_of_tasks_completed == no_of_tasks:
                             body = "Emails sent"
                             request.session["email_status"] = "done"

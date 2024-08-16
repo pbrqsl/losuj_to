@@ -120,7 +120,7 @@ class BultUserRegistrationFormOld(forms.Form):
             try:
                 validator(email)
                 data_export.append(email)
-            except Exception:
+            except ValidationError:
                 pass
         return data_export
 
