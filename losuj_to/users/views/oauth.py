@@ -16,15 +16,9 @@ class CustomAllAuthLoginView(AllAuthLoginView):
     template_name = "users/login.html"
 
     def form_valid(self, form):
-        print("this is request")
-        print(self.request)
-        print("this is postrequest")
         return super().form_valid(form)
 
     def form_invalid(self, form) -> HttpResponse:
-        print("this is request")
-        print(self.request)
-        print("this is postrequest")
         return super().form_invalid(form)
 
 

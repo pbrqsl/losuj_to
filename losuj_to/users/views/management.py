@@ -1,4 +1,3 @@
-from allauth.account.utils import has_verified_email
 from django.contrib.auth.views import (
     PasswordChangeDoneView,
     PasswordChangeView,
@@ -61,6 +60,4 @@ class CustomPasswordChangeDoneView(PasswordChangeDoneView):
 
 class CheckIfMailConfirmed(View):
     def get(self, request):
-        user = request.user
-        print(has_verified_email(user, user.email))
         return redirect("home")

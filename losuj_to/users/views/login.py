@@ -36,7 +36,6 @@ class CustomLoginView(LoginView):
             return redirect(reverse("login"))
 
     def post(self, request: HttpRequest, *args: str, **kwargs: Any):
-        print(request.user)
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form: AuthenticationForm) -> HttpResponse:
@@ -45,7 +44,6 @@ class CustomLoginView(LoginView):
         self.success_url = reverse(next)
         verified_email = has_verified_email(user, user.email)
         if verified_email:
-            print(self.success_url)
             messages.success(self.request, f"Successfully signed in as {user}")
             return super().form_valid(form)
         self.request.session["resend_email_user"] = user.email
@@ -81,6 +79,6 @@ class ProfileView(TemplateView):
         context["is_user_verified"] = has_verified_email(user, user.email)
         if not user.user_token:
             return context
-        print("aa")
+
         context["is_local_user"] = True
         return context
