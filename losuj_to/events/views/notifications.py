@@ -123,41 +123,42 @@ class InvitationWaitView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 class InvitationStreamWaitView(TemplateView, LoginRequiredMixin):
     success_url = "event_summary"
 
+    def email_status_set_OK(self, task_id):
+        email_task = EmailTask.objects.get(task_uuid=task_id)
+        email_task.status = "OK"
+        email_task.save()
+
+    def get_task_state(self, task_id):
+        task_status = get_task_status(task_id=task_id)
+        return task_status.state
+
+    def event_stream(self, request, task_ids):
+        task_ids_converted = task_ids.split(",")
+        waiting = True
+        no_of_tasks = len(task_ids_converted)
+        no_of_tasks_completed = 0
+        while waiting:
+            print("sending mail")
+            time.sleep(1)
+            for task_id in task_ids_converted:
+                task_state = self.get_task_state(task_id=task_id)
+                if task_state == "PENDING":
+                    body = f"{task_id}: {task_state}"
+                    yield f"data: {body}\n\n"
+                else:
+                    self.email_status_set_OK(task_id=task_id)
+                    no_of_tasks_completed += 1
+                    if no_of_tasks_completed == no_of_tasks:
+                        body = "Emails sent"
+                        request.session["email_status"] = "done"
+                        waiting = False
+                    else:
+                        body = f"{task_id}: {task_state}"
+                    yield f"data: {body}\n\n"
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         task_ids = self.kwargs.get("task_ids")
-
-        def email_status_set_OK(task_id):
-            email_task = EmailTask.objects.get(task_uuid=task_id)
-            email_task.status = "OK"
-            email_task.save()
-
-        def get_task_state(task_id):
-            task_status = get_task_status(task_id=task_id)
-            return task_status.state
-
-        def event_stream(task_ids):
-            task_ids_converted = task_ids.split(",")
-            waiting = True
-            no_of_tasks = len(task_ids_converted)
-            no_of_tasks_completed = 0
-            while waiting:
-                time.sleep(1)
-                for task_id in task_ids_converted:
-                    task_state = get_task_state(task_id=task_id)
-                    if task_state == "PENDING":
-                        body = f"{task_id}: {task_state}"
-                        yield f"data: {body}\n\n"
-                    else:
-                        email_status_set_OK(task_id=task_id)
-                        no_of_tasks_completed += 1
-                        if no_of_tasks_completed == no_of_tasks:
-                            body = "Emails sent"
-                            request.session["email_status"] = "done"
-                            waiting = False
-                        else:
-                            body = f"{task_id}: {task_state}"
-                        yield f"data: {body}\n\n"
-
         return StreamingHttpResponse(
-            event_stream(task_ids=task_ids), content_type="text/event-stream"
+            self.event_stream(request, task_ids=task_ids),
+            content_type="text/event-stream",
         )

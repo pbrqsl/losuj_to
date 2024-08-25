@@ -52,6 +52,12 @@ class Participant(models.Model):
         return f"{self.name}"
 
 
+class Whish(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    description = models.CharField(max_length=255, null=True, blank=True)
+
+
 class Draw(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     participant = models.ForeignKey(
