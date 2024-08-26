@@ -123,14 +123,32 @@ class InvitationWaitView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 class InvitationStreamWaitView(TemplateView, LoginRequiredMixin):
     success_url = "event_summary"
 
-    def email_status_set_OK(self, task_id):
+    def set_email_status(self, task_id, status):
         email_task = EmailTask.objects.get(task_uuid=task_id)
-        email_task.status = "OK"
+        email_task.status = status
         email_task.save()
 
     def get_task_state(self, task_id):
         task_status = get_task_status(task_id=task_id)
         return task_status.state
+
+    def _handle_email(
+        self, task_id, request, no_of_tasks, no_of_tasks_completed, waiting
+    ):
+        task_state = self.get_task_state(task_id=task_id)
+        if task_state == "PENDING":
+            body = f"{task_id}: {task_state}"
+            return f"data: {body}\n\n", waiting, no_of_tasks_completed
+        else:
+            self.set_email_status(task_id=task_id, status="OK")
+            no_of_tasks_completed += 1
+            if no_of_tasks_completed == no_of_tasks:
+                body = "Emails sent"
+                request.session["email_status"] = "done"
+                waiting = False
+            else:
+                body = f"{task_id}: {task_state}"
+            return f"data: {body}\n\n", waiting, no_of_tasks_completed
 
     def event_stream(self, request, task_ids):
         task_ids_converted = task_ids.split(",")
@@ -138,23 +156,12 @@ class InvitationStreamWaitView(TemplateView, LoginRequiredMixin):
         no_of_tasks = len(task_ids_converted)
         no_of_tasks_completed = 0
         while waiting:
-            print("sending mail")
             time.sleep(1)
             for task_id in task_ids_converted:
-                task_state = self.get_task_state(task_id=task_id)
-                if task_state == "PENDING":
-                    body = f"{task_id}: {task_state}"
-                    yield f"data: {body}\n\n"
-                else:
-                    self.email_status_set_OK(task_id=task_id)
-                    no_of_tasks_completed += 1
-                    if no_of_tasks_completed == no_of_tasks:
-                        body = "Emails sent"
-                        request.session["email_status"] = "done"
-                        waiting = False
-                    else:
-                        body = f"{task_id}: {task_state}"
-                    yield f"data: {body}\n\n"
+                body, waiting, no_of_tasks_completed = self._handle_email(
+                    task_id, request, no_of_tasks, no_of_tasks_completed, waiting
+                )
+                yield body
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         task_ids = self.kwargs.get("task_ids")
