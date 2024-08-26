@@ -27,7 +27,7 @@ def event_draw(drawing_dict, participants):
 
 def perform_drawing(event, participants, drawing_dict):
     draw_result = event_draw(drawing_dict=drawing_dict, participants=participants)
-    print(draw_result)
+
     for key in draw_result:
         participant = get_object_or_404(Participant, user__email=key, event=event)
         drawn_participant = get_object_or_404(

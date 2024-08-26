@@ -52,6 +52,12 @@ class Participant(models.Model):
         return f"{self.name}"
 
 
+class Whish(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    description = models.CharField(max_length=255, null=True, blank=True)
+
+
 class Draw(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     participant = models.ForeignKey(
@@ -81,13 +87,13 @@ class Exclusion(models.Model):
     excluded_participant = models.ForeignKey(
         Participant,
         on_delete=models.CASCADE,
-        related_name="exlusion_as_excluded_participant",
+        related_name="exclusion_as_excluded_participant",
     )
 
     def save(self, *args, **kwargs):
         if self.participant == self.excluded_participant:
             raise IntegrityError(
-                "Participand and exluded participant cannot be the same"
+                "Participant and excluded participant cannot be the same"
             )
         super().save(*args, **kwargs)
 

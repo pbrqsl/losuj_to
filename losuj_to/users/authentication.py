@@ -1,6 +1,6 @@
-from users.models import CustomUser
-from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
+from users.models import CustomUser
 
 
 class CustomAuthBackend:
@@ -11,7 +11,6 @@ class CustomAuthBackend:
                 return user
 
         except CustomUser.DoesNotExist:
-            print("user does not exist")
             return None
 
     def get_user(self, user_id):
