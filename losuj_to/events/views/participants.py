@@ -13,10 +13,11 @@ from events.forms import (
     BulkUserRegistrationForm,
     BultUserRegistrationFormOld,
     ExcludeParticipantsForm,
+    WhishCreateForm,
 )
 from events.helpers import get_event_by_pk
 from events.mixins import EventOwnerMixin
-from events.models import Event, Exclusion, Participant
+from events.models import Event, Exclusion, Participant, Whish
 from users.forms import BultUserRegistrationForm
 from users.models import CustomUser
 
@@ -343,6 +344,33 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
             if exclude_pair in exclusion_pairs:
                 continue
             Exclusion.delete(exclude)
+        return redirect(success_url)
+
+
+class ParticipantWhishCreateView(FormView, LoginRequiredMixin):
+    form_class = WhishCreateForm
+    success_url = "event_view"
+    template_name = "event/event_whish_create.html"
+
+    # def post(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
+    #     success_url = reverse(self.success_url, kwargs={"pk": self.kwargs.get("pk")})
+    #     return redirect(success_url)
+
+    def form_valid(self, form):
+        event_id = self.kwargs.get("pk")
+        event = get_event_by_pk(event_id=event_id)
+        success_url = reverse(self.success_url, kwargs={"pk": event.id})
+        participant = get_object_or_404(
+            Participant, user__email=self.request.user.email, event=event
+        )
+        description = form.cleaned_data["description"]
+        print(event)
+        print(participant)
+        print(description)
+        Whish.objects.create(
+            event=event, description=description, participant=participant
+        )
+
         return redirect(success_url)
 
 

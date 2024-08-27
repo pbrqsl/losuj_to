@@ -22,23 +22,31 @@
         <h1 style="display: none" id="drawn_name">{{ event_data.drawn_participant }}</h1>
 
     {% endif %}
+    <br><br>
 
+
+    {% if event_data.participant_whishes %}
     <h3>your whishlist....</h3>
+        {% for whish in event_data.participant_whishes %}
+
+            {{whish.description}} <br>
+        {% endfor %}
+
+        {% else %}
+        <h3>Currently your whishlist is empty :(</h3>
+    {% endif %}
 
 
-  {% endif %}
 
+
+    <a href='{% url "event_whish_create" pk=event_data.event_id %}'>add a whish</a>
 
   {% if event_data.event_location != '' %}
   <p>Event Location: {{ event_data.event_location }}</p>
 
   {% endif %}
+  {% endif %}
 
-
-  {% if excludes %}
-
-
-{% endif %}
 
 <!-- <style>
     .container {

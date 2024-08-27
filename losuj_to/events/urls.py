@@ -17,6 +17,7 @@ from events.views.participants import (
     ParticipantExcludeCreateView,
     ParticipantExcludeUpdateView,
     ParticipantUpdateView,
+    ParticipantWhishCreateView,
 )
 from events.views.summaries import (
     EventAdminDetailView,
@@ -58,6 +59,11 @@ urlpatterns = [
         "event_update_excludes/<int:pk>",
         ParticipantExcludeUpdateView.as_view(),
         name="event_excludes_update",
+    ),
+    path(
+        "event_whish_create/<int:pk>",
+        ParticipantWhishCreateView.as_view(),
+        name="event_whish_create",
     ),
     path(
         "event_toggle_active/<int:pk>",
