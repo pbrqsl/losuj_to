@@ -14,6 +14,7 @@ from events.models import Draw, Event, Participant, Whish
 
 
 class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
+    # class EventAdminDetailView(TemplateView, LoginRequiredMixin):
     template_name = "event/event_summary.html"
 
     def get_draws(self, event: Event):
@@ -122,6 +123,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "event_id": event.id,
             "draw_collected": draw.collected,
             "drawn_participant": draw.drawn_participant.name,
+            "drawn_participant_id": draw.drawn_participant.id,
             "participant": participant.name,
             "can_collect": can_collect,
             "draw_id": draw.id,

@@ -7,6 +7,7 @@ from events.views.crud import (
 )
 from events.views.notifications import (
     InvitationReminderView,
+    InvitationReminderWhishesView,
     InvitationSendView,
     InvitationStreamWaitView,
     InvitationWaitView,
@@ -84,6 +85,11 @@ urlpatterns = [
         "send_reminder/<int:pk>/<int:participant_id>",
         InvitationReminderView.as_view(),
         name="send_reminder",
+    ),
+    path(
+        "send_reminder_whishes/<int:pk>/<int:participant_id>",
+        InvitationReminderWhishesView.as_view(),
+        name="send_reminder_whishes",
     ),
     path(
         "send_invitations_wait/<int:pk>/<str:task_ids>",

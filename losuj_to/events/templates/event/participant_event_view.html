@@ -19,8 +19,21 @@
     {% else %}
         Click <a href="#" id="unhide_name">here</a> to unhide your drawn name.
 
-        <h1 style="display: none" id="drawn_name">{{ event_data.drawn_participant }}</h1>
 
+        <div style="display: none" id="drawn_name">
+        <h1 >{{ event_data.drawn_participant }}</h1>
+        {% if event_data.drawn_participant_whishes %}
+        {% for whish in event_data.drawn_participant_whishes %}
+
+            {{whish.description}} <br>
+        {% endfor %}
+
+        {% else %}
+        <h3>Currently your participant does not have any whishes.</h3>
+        <h2>send a reminder?</h2>
+        <a href='{% url "send_reminder_whishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>Send a reminder.</a>
+        {% endif %}
+        </div>
     {% endif %}
     <br><br>
 

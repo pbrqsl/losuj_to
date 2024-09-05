@@ -160,3 +160,32 @@ def send_raminder(request, participant, event):
         html_content=html_content,
     )
     return task
+
+
+def send_raminder_whishes(request, participant, event):
+    from django.utils.html import strip_tags
+
+    url_prefix = reverse("login")
+    url_prefix = request.build_absolute_uri(url_prefix)
+    invite_url = f"{url_prefix}?token={participant.user.user_token}&next=/events/event_view/{event.token}"
+    subject = f"{participant.name}, pelase visit the page of event: {event.event_name}"
+    from_email = "pbrqsl@gmail.com"
+    to_email = "pbronikowski@gmail.com"  #
+    html_content = render_to_string(
+        "event/email_template_whishes.html",
+        {
+            "invite_url": invite_url,
+            "participant_name": participant.name,
+            "event_name": event.event_name,
+        },
+    )
+    plain_message = strip_tags(html_content)
+
+    task = send_invitation_mail.delay(
+        subject=subject,
+        plain_message=plain_message,
+        from_email=from_email,
+        to_email=to_email,
+        html_content=html_content,
+    )
+    return task

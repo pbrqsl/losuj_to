@@ -54,6 +54,11 @@ def check_not_collected_draws():
     #     html_content=html_content,
 
     # )
+    # 49-56 -> 58-60 (zamiana)
+    # mail.send_mail(
+    #     subject, plain_message, from_email, [to_email], html_message=html_content
+    # )
+
     return "scheduled task test"
 
 
@@ -70,7 +75,7 @@ def get_task_status(task_id):
 email_queue.conf.beat_schedule = {
     "check_not_collected_every_10_minutes": {
         "task": "events.celery_app.check_not_collected_draws",
-        "schedule": 10.0,
+        "schedule": 60.0,
     },
     "time_to_event_1w": {
         "task": "events.celery_app.time_to_event_1w",

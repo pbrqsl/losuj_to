@@ -114,3 +114,6 @@ class EmailTask(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     email = models.EmailField()
     status = models.CharField(max_length=3, choices=Status.choices, null=True)
+
+    def __repr__(self):
+        return f"owner: {self.owner}; event: {self.event}; email: {self.email}; status: {self.status}; "
