@@ -11,6 +11,8 @@ from events.views.notifications import (
     InvitationSendView,
     InvitationStreamWaitView,
     InvitationWaitView,
+    InvitationWhishesStreamWaitView,
+    InvitationWhishesWaitView,
 )
 from events.views.participants import (
     BulkUserRegistration,
@@ -97,6 +99,11 @@ urlpatterns = [
         name="send_invitations_wait",
     ),
     path(
+        "send_invitations_whishes_wait/<int:pk>/<str:task_ids>",
+        InvitationWhishesWaitView.as_view(),
+        name="send_invitations_whishes_wait",
+    ),
+    path(
         "event_list/",
         EventListView.as_view(),
         name="event_list",
@@ -105,5 +112,10 @@ urlpatterns = [
         "status_stream/<int:pk>/<str:task_ids>",
         InvitationStreamWaitView.as_view(),
         name="event_send_invitation_status_stream",
+    ),
+    path(
+        "status_stream_whishes/<int:pk>/<str:task_ids>",
+        InvitationWhishesStreamWaitView.as_view(),
+        name="event_send_invitation_whishes_status_stream",
     ),
 ]

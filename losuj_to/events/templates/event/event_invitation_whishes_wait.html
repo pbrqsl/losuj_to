@@ -1,0 +1,41 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+<h1> getting updates (whishes) </h1>
+
+    <div id="result"></div>
+
+
+    <script>
+        if(typeof(EventSource) !== "undefined") {
+            //document.getElementById("result").innerHTML = "starting1";
+            var source = new EventSource("{% url 'event_send_invitation_whishes_status_stream' event_id task_ids %}");
+            //console.log(source)
+            source.onmessage = (event) => {
+                console.log("A");
+                console.log(event.data)
+                //document.getElementById("result").innerHTML += event.data;
+
+                if (event.data === "Emails sent") {
+                    document.getElementById("result").innerHTML += "<br>closing connection";
+                    source.close()
+                    window.location.reload()
+                } else {
+                    if (document.getElementById("result").innerHTML === "sending invitations...") {
+                        console.log("som trzy")
+                        document.getElementById("result").innerHTML = "sending invitations..";
+                    } else {
+                        console.log(document.getElementById("result").innerHTML)
+                        document.getElementById("result").innerHTML = "sending invitations...";
+                    }
+
+                };
+                }
+            } else {
+                document.getElementById("result").innerHTML = "sorry, your browser sucks"
+        }
+
+
+    </script>
+
+{% endblock %}
