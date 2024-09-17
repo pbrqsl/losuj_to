@@ -14,7 +14,6 @@ from events.helpers import (
     get_participant_by_id,
     send_invitation,
     send_raminder,
-    send_raminder_whishes,
 )
 from events.mixins import EventOwnerMixin
 from events.models import EmailTask, Participant
@@ -65,7 +64,10 @@ class InvitationReminderView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         email_tasks = []
 
         email_task_job = send_raminder(
-            request=request, participant=participant, event=event
+            request=request,
+            participant=participant,
+            event=event,
+            email_template="event/email_template.html",
         )
 
         email_tasks.append(email_task_job.id)
@@ -91,6 +93,7 @@ class InvitationReminderView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 
 class InvitationReminderWhishesView(TemplateView, LoginRequiredMixin):
     success_url = "send_invitations_whishes_wait"
+    email_template = "event/email_template_whishes.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")
@@ -99,8 +102,11 @@ class InvitationReminderWhishesView(TemplateView, LoginRequiredMixin):
         participant = get_participant_by_id(participant_id=participant_id)
         email_tasks = []
 
-        email_task_job = send_raminder_whishes(
-            request=request, participant=participant, event=event
+        email_task_job = send_raminder(
+            request=request,
+            participant=participant,
+            event=event,
+            email_template=self.email_template,
         )
 
         email_tasks.append(email_task_job.id)
@@ -125,12 +131,11 @@ class InvitationReminderWhishesView(TemplateView, LoginRequiredMixin):
         return redirect(success_url)
 
 
-# class InvitationWaitView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
-class InvitationWaitView(TemplateView, LoginRequiredMixin):
+class InvitationWaitTemplateView(TemplateView, LoginRequiredMixin):
     success_url = "event_send_invitation_status_stream"
     template_name = "event/event_invitation_wait.html"
     redirect_url = "event_summary"
-    # redirect_url = "event_view"
+    success_message = "Invite sent"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         task_ids = self.kwargs.get("task_ids")
@@ -149,7 +154,7 @@ class InvitationWaitView(TemplateView, LoginRequiredMixin):
             messages.add_message(
                 self.request,
                 messages.INFO,
-                "Invite sent",
+                self.success_message,
             )
             return redirect(redirect_url)
 
@@ -160,43 +165,21 @@ class InvitationWaitView(TemplateView, LoginRequiredMixin):
         )
 
 
-class InvitationWhishesWaitView(TemplateView, LoginRequiredMixin):
+class InvitationWaitView(EventOwnerMixin, InvitationWaitTemplateView):
+    success_url = "event_send_invitation_status_stream"
+    template_name = "event/event_invitation_wait.html"
+    redirect_url = "event_summary"
+    success_message = "Invite sent"
+
+
+class InvitationWhishesWaitView(InvitationWaitTemplateView):
     success_url = "event_send_invitation_whishes_status_stream"
     template_name = "event/event_invitation_whishes_wait.html"
-    # redirect_url = "event_summary"
     redirect_url = "event_view"
-
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        task_ids = self.kwargs.get("task_ids")
-        event_id = self.kwargs.get("pk")
-        task_ids_array = task_ids.split(",")
-
-        for task_id in task_ids_array:
-            task = get_object_or_404(EmailTask, task_uuid=task_id)
-            if task.owner != request.user:
-                raise PermissionDenied
-
-        email_tasks_pending = EmailTask.objects.filter(
-            event_id=event_id, status="PEN"
-        ).filter(task_uuid__in=task_ids_array)
-
-        if len(email_tasks_pending) == 0:
-            redirect_url = reverse(self.redirect_url, kwargs={"pk": event_id})
-            messages.add_message(
-                self.request,
-                messages.INFO,
-                "Reminder sent",
-            )
-            return redirect(redirect_url)
-
-        return render(
-            self.request,
-            self.template_name,
-            {"task_ids": task_ids, "event_id": event_id},
-        )
+    success_message = "Reminder sent"
 
 
-class InvitationStreamWaitView(TemplateView, LoginRequiredMixin):
+class InvitationStreamWaitTemplateView(TemplateView, LoginRequiredMixin):
     success_url = "event_summary"
 
     def set_email_status(self, task_id, status):
@@ -247,52 +230,13 @@ class InvitationStreamWaitView(TemplateView, LoginRequiredMixin):
         )
 
 
-class InvitationWhishesStreamWaitView(TemplateView, LoginRequiredMixin):
+class InvitationStreamWaitView(
+    InvitationStreamWaitTemplateView, TemplateView, LoginRequiredMixin
+):
+    success_url = "event_summary"
+
+
+class InvitationWhishesStreamWaitView(
+    InvitationStreamWaitTemplateView, TemplateView, LoginRequiredMixin
+):
     success_url = "event_view"
-
-    def set_email_status(self, task_id, status):
-        email_task = EmailTask.objects.get(task_uuid=task_id)
-        email_task.status = status
-        email_task.save()
-
-    def get_task_state(self, task_id):
-        task_status = get_task_status(task_id=task_id)
-        return task_status.state
-
-    def _handle_email(
-        self, task_id, request, no_of_tasks, no_of_tasks_completed, waiting
-    ):
-        task_state = self.get_task_state(task_id=task_id)
-        if task_state == "PENDING":
-            body = f"{task_id}: {task_state}"
-            return f"data: {body}\n\n", waiting, no_of_tasks_completed
-        else:
-            self.set_email_status(task_id=task_id, status="OK")
-            no_of_tasks_completed += 1
-            if no_of_tasks_completed == no_of_tasks:
-                body = "Emails sent"
-                request.session["email_status"] = "done"
-                waiting = False
-            else:
-                body = f"{task_id}: {task_state}"
-            return f"data: {body}\n\n", waiting, no_of_tasks_completed
-
-    def event_stream(self, request, task_ids):
-        task_ids_converted = task_ids.split(",")
-        waiting = True
-        no_of_tasks = len(task_ids_converted)
-        no_of_tasks_completed = 0
-        while waiting:
-            time.sleep(1)
-            for task_id in task_ids_converted:
-                body, waiting, no_of_tasks_completed = self._handle_email(
-                    task_id, request, no_of_tasks, no_of_tasks_completed, waiting
-                )
-                yield body
-
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        task_ids = self.kwargs.get("task_ids")
-        return StreamingHttpResponse(
-            self.event_stream(request, task_ids=task_ids),
-            content_type="text/event-stream",
-        )
