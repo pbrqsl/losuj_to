@@ -42,7 +42,13 @@
     <h3>your whishlist....</h3>
         {% for whish in event_data.participant_whishes %}
 
-            {{whish.description}} <br>
+            {{whish.description}} |
+
+            <form action='{% url "event_whish_delete" pk=whish.id event_id=event_data.event_id %}' method="DELETE" style="display:inline;" id="my_whish_{{whish.id}}">
+                {% csrf_token %}
+            <!-- <button>delete</button> -->
+            <a href="javascript:{}" onclick="document.getElementById('my_whish_{{whish.id}}').submit(); return false;">delete (trash can)</a>
+            </form> <br>
         {% endfor %}
 
         {% else %}
@@ -169,6 +175,7 @@
         const collectDrawButton = document.getElementById('collect_draw');
         const collectUnhideNameLink = document.getElementById('unhide_name');
         const collectDrawnName = document.getElementById('drawn_name');
+
 
         console.log(collectDrawButton)
         if (collectDrawButton) {

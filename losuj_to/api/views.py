@@ -1,5 +1,5 @@
 from events.models import Draw
-from rest_framework.generics import DestroyAPIView, UpdateAPIView
+from rest_framework.generics import UpdateAPIView
 
 from .serializers import DrawSerializer
 
@@ -11,7 +11,3 @@ class UpdateDrawCollected(UpdateAPIView):
 
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
-
-
-class DestroyWhishItem(DestroyAPIView):
-    pass
