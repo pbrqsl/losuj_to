@@ -6,12 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models.query import QuerySet
-from django.http import (
-    HttpRequest,
-    HttpResponse,
-    HttpResponseNotAllowed,
-    HttpResponseRedirect,
-)
+from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import DeleteView, FormView
@@ -377,23 +372,26 @@ class ParticipantWhishCreateView(FormView, LoginRequiredMixin):
 
 
 class ParticipantWhishDeleteView(DeleteView, LoginRequiredMixin):
-    success_url = "event_view"
-    template_name = "event/whish_confirm_delete.html"
+    model = Whish
+    template_name = "template/whish_confirm_delete.html"
 
     def get_success_url(self) -> str:
         event_id = self.kwargs.get("event_id")
-        return reverse(
-            self.success_url,
+        success_url = reverse(
+            "event_view",
             kwargs={"pk": event_id},
         )
+        return success_url
 
     def get_queryset(self) -> QuerySet[Any]:
         whish_id = self.kwargs.get("pk")
         return Whish.objects.filter(id=whish_id)
 
     def delete(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
-        super().delete(request, *args, **kwargs)
-        return HttpResponseRedirect(self.get_success_url)
+        self.object = self.get_object()
+        self.object.delete()
+        success_url = self.get_success_url()
+        return redirect(success_url)
 
 
 class BulkUserRegistration(FormView):

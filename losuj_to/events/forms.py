@@ -40,6 +40,7 @@ class EventCreateForm(forms.Form):
             attrs={"type": "datetime-local", "class": "event_input"}
         ),
         label="Date of Drawing Names",
+        localize=True,
     )
     price_limit = forms.IntegerField(
         required=False,
@@ -57,6 +58,7 @@ class EventCreateForm(forms.Form):
         cleaned_data = super().clean()
         event_date = cleaned_data.get("event_date")
         draw_date = cleaned_data.get("draw_date")
+        print(f"draw_date: {draw_date}")
         if draw_date and draw_date.date() >= event_date:
             self.add_error("draw_date", "Draw date must occur before the event date.")
 

@@ -52,7 +52,8 @@ class EventCreateView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         event_data = form.cleaned_data
-
+        print("FORM VALID")
+        print(event_data.get("draw_date"))
         form.cleaned_data["draw_date"] = (
             event_data.get("draw_date").strftime("%Y-%m-%dT%H:%M:%S")
             if event_data.get("draw_date")
@@ -188,6 +189,7 @@ class EventDeactivateView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         draw_results.delete()
 
         event.confirmed = False
+        event.confirmed_date = None
         event.save()
 
         return redirect(success_url)

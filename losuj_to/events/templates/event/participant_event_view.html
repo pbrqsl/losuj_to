@@ -7,7 +7,8 @@
 
   <p>Event date: {{ event_data.event_date }}</p>
 
-  {% if event_data.draw_date != None %}
+
+  {% if not event_data.can_collect %}
 
 
   <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
@@ -43,12 +44,14 @@
         {% for whish in event_data.participant_whishes %}
 
             {{whish.description}} |
+            <a href="#" class="whish_delete" id="{{whish.id}}" event_id="{{ event_data.event_id }}">delete</a>
+            <!-- <form action='{% url "event_whish_delete" pk=whish.id event_id=event_data.event_id %}' " style="display:inline;" id="my_whish_{{whish.id}}"> -->
 
-            <form action='{% url "event_whish_delete" pk=whish.id event_id=event_data.event_id %}' method="DELETE" style="display:inline;" id="my_whish_{{whish.id}}">
                 {% csrf_token %}
             <!-- <button>delete</button> -->
-            <a href="javascript:{}" onclick="document.getElementById('my_whish_{{whish.id}}').submit(); return false;">delete (trash can)</a>
-            </form> <br>
+            <!-- <a href="javascript:{}" onclick="document.getElementById('my_whish_{{whish.id}}').submit(); return false;">delete (trash can)</a> -->
+
+            <!--  </form> --> <br>
         {% endfor %}
 
         {% else %}
@@ -65,88 +68,6 @@
 
   {% endif %}
   {% endif %}
-
-
-<!-- <style>
-    .container {
-        display: grid;
-        width: 70%;
-        display: none;
-    }
-    .container-unhidden {
-        display: grid;
-        width: 70%;
-    }
-
-    .left-column {
-        grid-column: 1;
-        grid-row: 2;
-        width: 100%;
-        align-items: center;
-
-        padding-right: 40px;
-    }
-
-    .right-column {
-        grid-column: 2;
-        grid-row: 2;
-        align-items: center;
-
-        padding-left: 40px;
-        padding-right: 100px;
-
-    }
-
-    .drop-container {
-        width: 500px;
-        height: 50px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-        position: relative; /* Required for positioning the label */
-    }
-
-    .drop-container::before {
-        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
-        position: absolute;
-        top: 50%;
-        left: 80%;
-        transform: translate(-50%, -50%);
-        color: #ccc;
-        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
-        font-family: Arial, Helvetica, sans-serif ;
-    }
-
-    .pool-container {
-        width: 100%;
-        height: 80px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-    }
-
-    .draggable {
-        cursor: move;
-        display: inline-block;
-        margin: 5px;
-        padding: 5px;
-        border: 1px solid #000;
-        font-family: Arial, Helvetica, sans-serif;
-        border-radius: 10px;
-        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .delete-button {
-        cursor: pointer;
-        color: red;
-        margin-left: 5px;
-    }
-</style>
--->
 
 
 
@@ -175,6 +96,7 @@
         const collectDrawButton = document.getElementById('collect_draw');
         const collectUnhideNameLink = document.getElementById('unhide_name');
         const collectDrawnName = document.getElementById('drawn_name');
+        const deleteWhishButton = document.getElementsByClassName('whish_delete')
 
 
         console.log(collectDrawButton)
@@ -203,6 +125,40 @@
                         }
                     });
                 })
+            };
+
+        if (deleteWhishButton) {
+            for (var i = 0 ; i < deleteWhishButton.length; i++) {
+                let whish_id = deleteWhishButton[i].id;
+                let event_id = "{{event_data.event_id}}"
+                const endpoint = `/events/event_whish_delete/${whish_id}/${event_id}`
+                console.log(endpoint);
+                console.log(whish_id);
+                console.log(event_id);
+                console.log(getCSRFTToken());
+                deleteWhishButton[i].addEventListener('click' ,() => {
+                    console.log(deleteWhishButton[i])
+                    console.log(whish_id)
+                    console.log(event_id)
+                    "event_whish_delete/<int:pk>/<int:event_id>"
+                    fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+
+                    }).then(response => {
+                        console.log(response.status);
+                        if (response.status === 200) {
+                            console.log('aaa')
+                            window.location.reload();
+
+                        }
+                    })
+
+                 } , false ) ;
+}
             };
 
 

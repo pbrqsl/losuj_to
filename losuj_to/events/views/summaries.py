@@ -14,7 +14,6 @@ from events.models import Draw, Event, Participant, Whish
 
 
 class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
-    # class EventAdminDetailView(TemplateView, LoginRequiredMixin):
     template_name = "event/event_summary.html"
 
     def get_draws(self, event: Event):
@@ -95,10 +94,14 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             raise Http404
 
         if event.draw_date:
-            utc_timezone = pytz.timezone("UTC")
-            current_time = datetime.now()
-            current_time = utc_timezone.localize(current_time)
-            if event.draw_date < current_time:
+            datetime_now = datetime.now()
+            local_timezone = pytz.timezone("Europe/Berlin")
+            datetime_now = datetime_now.astimezone(local_timezone)
+            datetime_now = datetime_now.replace(tzinfo=None)
+            drawing_date = event.draw_date
+            drawing_date = drawing_date.replace(tzinfo=None)
+
+            if drawing_date <= datetime_now:
                 can_collect = True
         else:
             can_collect = True

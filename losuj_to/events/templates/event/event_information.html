@@ -2,9 +2,13 @@
 
 {% block content %}
 {% load tz %}
-{% get_current_timezone as TIME_ZONE %}
-<!-- <div class="main-banner left-content"> -->
+{#% get_urrent_timezone as TIME_ZONE %#}
+
 <h1>Event details </h1>
+    {% timezone "Europe/Paris" %}
+    {% localtime on %}
+
+
     <form method="post" id="form1">
         {% csrf_token %}
         <div class="fieldWrapper">
@@ -28,11 +32,12 @@
 
 
     </form>
-
+    {% endlocaltime %}
+    {% endtimezone %}
 
     <p>Note: If no drawing date is provided, the drawing will be initiated by the owner at a later stage.</p>
     <p>Note: If drawing date is provided, it has to be scheduled at least one day before the event date.</p>
-<!-- </div> -->
+
 
 <!-- <button id="submit-btn" onclick="submitForm()" disabled>Next</button> -->
 
@@ -62,5 +67,7 @@
         input.addEventListener('input', updateSubmitButtonState);
     });
 </script>
+
+
 
 {% endblock %}
