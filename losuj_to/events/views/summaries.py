@@ -114,7 +114,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
         draw = get_object_or_404(Draw, event=event, participant=participant)
 
         participant_wishes = Wish.objects.filter(event=event, participant=participant)
-        drawn_paricipant_whishes = Wish.objects.filter(
+        drawn_paricipant_wishes = Wish.objects.filter(
             event=event, participant=draw.drawn_participant
         )
 
@@ -132,8 +132,8 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "participant": participant.name,
             "can_collect": can_collect,
             "draw_id": draw.id,
-            "participant_whishes": participant_wishes,
-            "drawn_participant_whishes": drawn_paricipant_whishes,
+            "participant_wishes": participant_wishes,
+            "drawn_participant_wishes": drawn_paricipant_wishes,
         }
 
         return render(request, self.template_name, context={"event_data": event_data})

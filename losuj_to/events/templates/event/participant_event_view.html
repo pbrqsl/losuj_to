@@ -23,8 +23,8 @@
 
         <div style="display: none" id="drawn_name">
         <h1 >{{ event_data.drawn_participant }}</h1>
-        {% if event_data.drawn_participant_whishes %}
-        {% for whish in event_data.drawn_participant_whishes %}
+        {% if event_data.drawn_participant_wishes %}
+        {% for whish in event_data.drawn_participant_wishes %}
 
             {{whish.description}} <br>
         {% endfor %}
@@ -39,9 +39,9 @@
     <br><br>
 
 
-    {% if event_data.participant_whishes %}
+    {% if event_data.participant_wishes %}
     <h3>your whishlist....</h3>
-        {% for whish in event_data.participant_whishes %}
+        {% for whish in event_data.participant_wishes %}
 
             {{whish.description}} |
             <a href="#" class="whish_delete" id="{{whish.id}}" event_id="{{ event_data.event_id }}">delete</a>

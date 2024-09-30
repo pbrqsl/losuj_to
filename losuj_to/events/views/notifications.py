@@ -91,7 +91,7 @@ class InvitationReminderView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         return redirect(success_url)
 
 
-class InvitationReminderWhishesView(TemplateView, LoginRequiredMixin):
+class InvitationReminderWishesView(TemplateView, LoginRequiredMixin):
     success_url = "send_invitations_whishes_wait"
     email_template = "event/email_template_whishes.html"
 
