@@ -236,7 +236,7 @@ class InvitationStreamWaitView(
     success_url = "event_summary"
 
 
-class InvitationWhishesStreamWaitView(
+class InvitationWishesStreamWaitView(
     InvitationStreamWaitTemplateView, TemplateView, LoginRequiredMixin
 ):
     success_url = "event_view"

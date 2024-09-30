@@ -11,7 +11,7 @@ from events.views.notifications import (
     InvitationSendView,
     InvitationStreamWaitView,
     InvitationWaitView,
-    InvitationWhishesStreamWaitView,
+    InvitationWishesStreamWaitView,
     InvitationWishesWaitView,
 )
 from events.views.participants import (
@@ -20,7 +20,7 @@ from events.views.participants import (
     ParticipantExcludeCreateView,
     ParticipantExcludeUpdateView,
     ParticipantUpdateView,
-    ParticipantWhishCreateView,
+    ParticipantWishCreateView,
     ParticipantWishDeleteView,
 )
 from events.views.summaries import (
@@ -66,7 +66,7 @@ urlpatterns = [
     ),
     path(
         "event_whish_create/<int:pk>",
-        ParticipantWhishCreateView.as_view(),
+        ParticipantWishCreateView.as_view(),
         name="event_whish_create",
     ),
     path(
@@ -121,7 +121,7 @@ urlpatterns = [
     ),
     path(
         "status_stream_whishes/<int:pk>/<str:task_ids>",
-        InvitationWhishesStreamWaitView.as_view(),
+        InvitationWishesStreamWaitView.as_view(),
         name="event_send_invitation_wishes_status_stream",
     ),
 ]

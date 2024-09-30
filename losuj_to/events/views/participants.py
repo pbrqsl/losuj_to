@@ -348,7 +348,7 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
         return redirect(success_url)
 
 
-class ParticipantWhishCreateView(FormView, LoginRequiredMixin):
+class ParticipantWishCreateView(FormView, LoginRequiredMixin):
     form_class = WishCreateForm
     success_url = "event_view"
     template_name = "event/event_whish_create.html"
