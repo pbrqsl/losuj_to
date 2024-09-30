@@ -1,4 +1,6 @@
 from datetime import datetime
+from itertools import chain
+from operator import attrgetter
 from typing import Any
 
 import pytz
@@ -151,11 +153,17 @@ class EventListView(LoginRequiredMixin, TemplateView):
 
         participated_events = Event.objects.filter(pk__in=participating_events_list)
 
+        all_events = list(chain(participated_events, owned_events))
+        all_events = list(set(all_events))
+        all_events = sorted(all_events, key=attrgetter("event_date"))
+        print(type(all_events))
+        print(all_events)
         return render(
             request,
             self.template_name,
             context={
                 "owned_events": owned_events,
                 "participated_events": participated_events,
+                "all_events": all_events,
             },
         )

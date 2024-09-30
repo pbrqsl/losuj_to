@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.shortcuts import get_list_or_404, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from events.celery_app import send_invitation_mail
@@ -41,7 +41,8 @@ def exludes_queryset_to_dict(excludes_queryset):
 
 def get_and_validate_event(event: Event):
     is_valid = True
-    participants_queryset = get_list_or_404(Participant, event=event)
+    # participants_queryset = get_list_or_404(Participant, event=event)
+    participants_queryset = Participant.objects.filter(event=event)
     excludes_queryset = Exclusion.objects.filter(event=event)
 
     errors = []

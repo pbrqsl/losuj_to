@@ -29,7 +29,7 @@ class Event(models.Model):
     token = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self) -> str:
-        return self.event_name
+        return f"{self.event_name}:[{self.event_date}]"
 
     def save(self, *args, **kwargs) -> None:
         super().save(*args, **kwargs)
