@@ -14,7 +14,7 @@ from events.forms import (
     BulkUserRegistrationForm,
     BultUserRegistrationFormOld,
     ExcludeParticipantsForm,
-    WhishCreateForm,
+    WishCreateForm,
 )
 from events.helpers import get_event_by_pk
 from events.mixins import EventOwnerMixin
@@ -349,7 +349,7 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
 
 
 class ParticipantWhishCreateView(FormView, LoginRequiredMixin):
-    form_class = WhishCreateForm
+    form_class = WishCreateForm
     success_url = "event_view"
     template_name = "event/event_whish_create.html"
 

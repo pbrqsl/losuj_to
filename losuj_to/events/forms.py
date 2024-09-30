@@ -146,7 +146,7 @@ class EventConfirmDeactivationForm(forms.Form):
     pass
 
 
-class WhishCreateForm(forms.ModelForm):
+class WishCreateForm(forms.ModelForm):
     class Meta:
         model = Wish
         fields = ["description"]
