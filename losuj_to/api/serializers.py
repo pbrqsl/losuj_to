@@ -1,4 +1,4 @@
-from events.models import Draw, Whish
+from events.models import Draw, Wish
 from rest_framework import serializers
 
 
@@ -16,4 +16,4 @@ class DrawSerializer(serializers.ModelSerializer):
 
 class WhishSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Whish
+        model = Wish

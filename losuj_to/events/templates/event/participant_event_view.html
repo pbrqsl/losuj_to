@@ -96,15 +96,12 @@
         const collectDrawButton = document.getElementById('collect_draw');
         const collectUnhideNameLink = document.getElementById('unhide_name');
         const collectDrawnName = document.getElementById('drawn_name');
-        const deleteWhishButton = document.getElementsByClassName('whish_delete')
+        const deleteWishButton = document.getElementsByClassName('whish_delete')
 
 
-        console.log(collectDrawButton)
         if (collectDrawButton) {
             collectDrawButton.addEventListener('click', function() {
-                console.log(getCSRFTToken());
                 const drawId = this.getAttribute('data-draw-id')
-                console.log(drawId);
                 fetch(`/api/draw_collected/${drawId}`, {
                     method: 'PATCH',
                     headers: {
@@ -118,7 +115,6 @@
                 .then(response => {
                         if (response.ok) {
                             alert('Gift collection status updated successfully!')
-                            console.log('OK')
                             location.reload()
                         } else {
                             alert('Thre was an issue with yor request.')
@@ -127,19 +123,12 @@
                 })
             };
 
-        if (deleteWhishButton) {
-            for (var i = 0 ; i < deleteWhishButton.length; i++) {
-                let whish_id = deleteWhishButton[i].id;
+        if (deleteWishButton) {
+            for (var i = 0 ; i < deleteWishButton.length; i++) {
+                let wish_id = deleteWishButton[i].id;
                 let event_id = "{{event_data.event_id}}"
-                const endpoint = `/events/event_whish_delete/${whish_id}/${event_id}`
-                console.log(endpoint);
-                console.log(whish_id);
-                console.log(event_id);
-                console.log(getCSRFTToken());
-                deleteWhishButton[i].addEventListener('click' ,() => {
-                    console.log(deleteWhishButton[i])
-                    console.log(whish_id)
-                    console.log(event_id)
+                const endpoint = `/events/event_whish_delete/${wish_id}/${event_id}`
+                deleteWishButton[i].addEventListener('click' ,() => {
                     "event_whish_delete/<int:pk>/<int:event_id>"
                     fetch(endpoint, {
                     method: 'POST',
@@ -149,9 +138,7 @@
                         },
 
                     }).then(response => {
-                        console.log(response.status);
                         if (response.status === 200) {
-                            console.log('aaa')
                             window.location.reload();
 
                         }

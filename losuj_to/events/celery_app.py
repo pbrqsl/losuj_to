@@ -65,7 +65,7 @@ def check_not_collected_draws():
         for event_reminder_day in event_reminder_days:
             logger.info(f"checking draws for {event_reminder_day} days before...")
             if (
-                days_since_confirmed >= timedelta(days=0)
+                days_since_confirmed >= timedelta(days=2)
                 and days_till_event == timedelta(days=event_reminder_day)
                 and drawing_time_difference < timedelta(minutes=0)
             ):
@@ -79,13 +79,7 @@ def check_not_collected_draws():
                 subject = f"{participant_name}, you are invited to {draw.event.event_name}"  # noqa
                 plain_message = "plain message placeholder"
                 url_prefix = reverse("login")
-                # url_prefix = request.build_absolute_uri(url_prefix)
                 user_token = draw.participant.user.user_token
-                # logger.info(f"-----------------------------------------------")
-                # logger.info(f"------------TOKEN-----------------------------")
-                # logger.info(user_token)
-                # logger.info(f"------------TOKEN-----------------------------")
-
                 url_prefix = (Site.objects.get_current()).name
                 invite_url = f"http://{url_prefix}/login/?token={user_token}&next=/events/event_view/{draw.event.token}"
 

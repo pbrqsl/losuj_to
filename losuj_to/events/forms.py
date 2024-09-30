@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.forms import HiddenInput
-from events.models import Event, Whish
+from events.models import Event, Wish
 
 
 class EventCreateForm(forms.Form):
@@ -148,5 +148,5 @@ class EventConfirmDeactivationForm(forms.Form):
 
 class WhishCreateForm(forms.ModelForm):
     class Meta:
-        model = Whish
+        model = Wish
         fields = ["description"]

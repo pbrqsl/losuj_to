@@ -18,7 +18,7 @@ from events.forms import (
 )
 from events.helpers import get_event_by_pk
 from events.mixins import EventOwnerMixin
-from events.models import Event, Exclusion, Participant, Whish
+from events.models import Event, Exclusion, Participant, Wish
 from users.forms import BultUserRegistrationForm
 from users.models import CustomUser
 
@@ -364,7 +364,7 @@ class ParticipantWhishCreateView(FormView, LoginRequiredMixin):
         print(event)
         print(participant)
         print(description)
-        Whish.objects.create(
+        Wish.objects.create(
             event=event, description=description, participant=participant
         )
 
@@ -372,7 +372,7 @@ class ParticipantWhishCreateView(FormView, LoginRequiredMixin):
 
 
 class ParticipantWhishDeleteView(DeleteView, LoginRequiredMixin):
-    model = Whish
+    model = Wish
     template_name = "template/whish_confirm_delete.html"
 
     def get_success_url(self) -> str:
@@ -385,7 +385,7 @@ class ParticipantWhishDeleteView(DeleteView, LoginRequiredMixin):
 
     def get_queryset(self) -> QuerySet[Any]:
         whish_id = self.kwargs.get("pk")
-        return Whish.objects.filter(id=whish_id)
+        return Wish.objects.filter(id=whish_id)
 
     def delete(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
         self.object = self.get_object()

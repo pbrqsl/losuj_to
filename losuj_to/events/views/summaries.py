@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 from events.helpers import get_and_validate_event, get_event_by_hash, get_event_by_pk
 from events.mixins import EventOwnerMixin
-from events.models import Draw, Event, Participant, Whish
+from events.models import Draw, Event, Participant, Wish
 
 
 class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
@@ -113,8 +113,8 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
         )
         draw = get_object_or_404(Draw, event=event, participant=participant)
 
-        participant_whishes = Whish.objects.filter(event=event, participant=participant)
-        drawn_paricipant_whishes = Whish.objects.filter(
+        participant_wishes = Wish.objects.filter(event=event, participant=participant)
+        drawn_paricipant_whishes = Wish.objects.filter(
             event=event, participant=draw.drawn_participant
         )
 
@@ -132,7 +132,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "participant": participant.name,
             "can_collect": can_collect,
             "draw_id": draw.id,
-            "participant_whishes": participant_whishes,
+            "participant_whishes": participant_wishes,
             "drawn_participant_whishes": drawn_paricipant_whishes,
         }
 
