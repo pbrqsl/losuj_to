@@ -9,7 +9,7 @@
     <script>
         if(typeof(EventSource) !== "undefined") {
             //document.getElementById("result").innerHTML = "starting1";
-            var source = new EventSource("{% url 'event_send_invitation_whishes_status_stream' event_id task_ids %}");
+            var source = new EventSource("{% url 'event_send_invitation_wishes_status_stream' event_id task_ids %}");
             //console.log(source)
             source.onmessage = (event) => {
                 console.log("A");

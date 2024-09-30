@@ -371,7 +371,7 @@ class ParticipantWhishCreateView(FormView, LoginRequiredMixin):
         return redirect(success_url)
 
 
-class ParticipantWhishDeleteView(DeleteView, LoginRequiredMixin):
+class ParticipantWishDeleteView(DeleteView, LoginRequiredMixin):
     model = Wish
     template_name = "template/whish_confirm_delete.html"
 

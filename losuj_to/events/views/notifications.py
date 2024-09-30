@@ -92,7 +92,7 @@ class InvitationReminderView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 
 
 class InvitationReminderWishesView(TemplateView, LoginRequiredMixin):
-    success_url = "send_invitations_whishes_wait"
+    success_url = "send_invitations_wishes_wait"
     email_template = "event/email_template_whishes.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -172,9 +172,9 @@ class InvitationWaitView(EventOwnerMixin, InvitationWaitTemplateView):
     success_message = "Invite sent"
 
 
-class InvitationWhishesWaitView(InvitationWaitTemplateView):
-    success_url = "event_send_invitation_whishes_status_stream"
-    template_name = "event/event_invitation_whishes_wait.html"
+class InvitationWishesWaitView(InvitationWaitTemplateView):
+    success_url = "event_send_invitation_wishes_status_stream"
+    template_name = "event/event_invitation_wishes_wait.html"
     redirect_url = "event_view"
     success_message = "Reminder sent"
 

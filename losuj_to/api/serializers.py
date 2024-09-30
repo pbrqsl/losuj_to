@@ -14,6 +14,6 @@ class DrawSerializer(serializers.ModelSerializer):
         return instance
 
 
-class WhishSerializer(serializers.ModelSerializer):
+class WishSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wish
