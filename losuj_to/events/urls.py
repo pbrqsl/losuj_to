@@ -65,14 +65,14 @@ urlpatterns = [
         name="event_excludes_update",
     ),
     path(
-        "event_whish_create/<int:pk>",
+        "event_wish_create/<int:pk>",
         ParticipantWishCreateView.as_view(),
-        name="event_whish_create",
+        name="event_wish_create",
     ),
     path(
-        "event_whish_delete/<int:pk>/<int:event_id>",
+        "event_wish_delete/<int:pk>/<int:event_id>",
         ParticipantWishDeleteView.as_view(),
-        name="event_whish_delete",
+        name="event_wish_delete",
     ),
     path(
         "event_toggle_active/<int:pk>",
@@ -95,9 +95,9 @@ urlpatterns = [
         name="send_reminder",
     ),
     path(
-        "send_reminder_whishes/<int:pk>/<int:participant_id>",
+        "send_reminder_wishes/<int:pk>/<int:participant_id>",
         InvitationReminderWishesView.as_view(),
-        name="send_reminder_whishes",
+        name="send_reminder_wishes",
     ),
     path(
         "send_invitations_wait/<int:pk>/<str:task_ids>",
@@ -120,7 +120,7 @@ urlpatterns = [
         name="event_send_invitation_status_stream",
     ),
     path(
-        "status_stream_whishes/<int:pk>/<str:task_ids>",
+        "status_stream_wishes/<int:pk>/<str:task_ids>",
         InvitationWishesStreamWaitView.as_view(),
         name="event_send_invitation_wishes_status_stream",
     ),

@@ -93,7 +93,7 @@ class InvitationReminderView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
 
 class InvitationReminderWishesView(TemplateView, LoginRequiredMixin):
     success_url = "send_invitations_wishes_wait"
-    email_template = "event/email_template_whishes.html"
+    email_template = "event/email_template_wishes.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         event_id = self.kwargs.get("pk")

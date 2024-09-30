@@ -24,15 +24,15 @@
         <div style="display: none" id="drawn_name">
         <h1 >{{ event_data.drawn_participant }}</h1>
         {% if event_data.drawn_participant_wishes %}
-        {% for whish in event_data.drawn_participant_wishes %}
+        {% for wish in event_data.drawn_participant_wishes %}
 
-            {{whish.description}} <br>
+            {{wish.description}} <br>
         {% endfor %}
 
         {% else %}
-        <h3>Currently your participant does not have any whishes.</h3>
+        <h3>Currently your participant does not have any wishes.</h3>
         <h2>send a reminder?</h2>
-        <a href='{% url "send_reminder_whishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>Send a reminder.</a>
+        <a href='{% url "send_reminder_wishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>Send a reminder.</a>
         {% endif %}
         </div>
     {% endif %}
@@ -40,28 +40,28 @@
 
 
     {% if event_data.participant_wishes %}
-    <h3>your whishlist....</h3>
-        {% for whish in event_data.participant_wishes %}
+    <h3>your wishlist....</h3>
+        {% for wish in event_data.participant_wishes %}
 
-            {{whish.description}} |
-            <a href="#" class="whish_delete" id="{{whish.id}}" event_id="{{ event_data.event_id }}">delete</a>
-            <!-- <form action='{% url "event_whish_delete" pk=whish.id event_id=event_data.event_id %}' " style="display:inline;" id="my_whish_{{whish.id}}"> -->
+            {{wish.description}} |
+            <a href="#" class="wish_delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">delete</a>
+            <!-- <form action='{% url "event_wish_delete" pk=wish.id event_id=event_data.event_id %}' " style="display:inline;" id="my_wish_{{wish.id}}"> -->
 
                 {% csrf_token %}
             <!-- <button>delete</button> -->
-            <!-- <a href="javascript:{}" onclick="document.getElementById('my_whish_{{whish.id}}').submit(); return false;">delete (trash can)</a> -->
+            <!-- <a href="javascript:{}" onclick="document.getElementById('my_wish_{{wish.id}}').submit(); return false;">delete (trash can)</a> -->
 
             <!--  </form> --> <br>
         {% endfor %}
 
         {% else %}
-        <h3>Currently your whishlist is empty :(</h3>
+        <h3>Currently your wishlist is empty :(</h3>
     {% endif %}
 
 
 
 
-    <a href='{% url "event_whish_create" pk=event_data.event_id %}'>add a whish</a>
+    <a href='{% url "event_wish_create" pk=event_data.event_id %}'>add a wish</a>
 
   {% if event_data.event_location != '' %}
   <p>Event Location: {{ event_data.event_location }}</p>
@@ -96,7 +96,7 @@
         const collectDrawButton = document.getElementById('collect_draw');
         const collectUnhideNameLink = document.getElementById('unhide_name');
         const collectDrawnName = document.getElementById('drawn_name');
-        const deleteWishButton = document.getElementsByClassName('whish_delete')
+        const deleteWishButton = document.getElementsByClassName('wish_delete')
 
 
         if (collectDrawButton) {
@@ -127,9 +127,9 @@
             for (var i = 0 ; i < deleteWishButton.length; i++) {
                 let wish_id = deleteWishButton[i].id;
                 let event_id = "{{event_data.event_id}}"
-                const endpoint = `/events/event_whish_delete/${wish_id}/${event_id}`
+                const endpoint = `/events/event_wish_delete/${wish_id}/${event_id}`
                 deleteWishButton[i].addEventListener('click' ,() => {
-                    "event_whish_delete/<int:pk>/<int:event_id>"
+                    "event_wish_delete/<int:pk>/<int:event_id>"
                     fetch(endpoint, {
                     method: 'POST',
                     headers: {

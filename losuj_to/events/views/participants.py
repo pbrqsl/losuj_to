@@ -351,7 +351,7 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
 class ParticipantWishCreateView(FormView, LoginRequiredMixin):
     form_class = WishCreateForm
     success_url = "event_view"
-    template_name = "event/event_whish_create.html"
+    template_name = "event/event_wish_create.html"
 
     def form_valid(self, form):
         event_id = self.kwargs.get("pk")
@@ -373,7 +373,7 @@ class ParticipantWishCreateView(FormView, LoginRequiredMixin):
 
 class ParticipantWishDeleteView(DeleteView, LoginRequiredMixin):
     model = Wish
-    template_name = "template/whish_confirm_delete.html"
+    template_name = "template/wish_confirm_delete.html"
 
     def get_success_url(self) -> str:
         event_id = self.kwargs.get("event_id")
@@ -384,8 +384,8 @@ class ParticipantWishDeleteView(DeleteView, LoginRequiredMixin):
         return success_url
 
     def get_queryset(self) -> QuerySet[Any]:
-        whish_id = self.kwargs.get("pk")
-        return Wish.objects.filter(id=whish_id)
+        wish_id = self.kwargs.get("pk")
+        return Wish.objects.filter(id=wish_id)
 
     def delete(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
         self.object = self.get_object()
