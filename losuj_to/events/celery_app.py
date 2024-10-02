@@ -19,8 +19,6 @@ logger = get_task_logger("my_celery")
 def send_invitation_mail(subject, plain_message, from_email, to_email, html_content):
     from django.core import mail
 
-    logger.info("sending email 12345678910!")
-    logger.info(f"plain_message: {plain_message}")
     mail.send_mail(
         subject, plain_message, from_email, [to_email], html_message=html_content
     )
@@ -35,7 +33,6 @@ def check_not_collected_draws():
     draws_no_collected = Draw.objects.filter(event__confirmed=True).filter(
         collected=False
     )
-    print("DRAWS NOT COLLECTED!!:")
     date_now = datetime.now().date()
     datetime_now = datetime.now()
     local_timezone = pytz.timezone("Europe/Berlin")
@@ -48,10 +45,6 @@ def check_not_collected_draws():
         date_confirmed = draw.event.confirmed_date
         days_since_confirmed = date_now - date_confirmed
         days_till_event = draw.event.event_date - date_now
-        logger.info(f"draw_date: {draw.event.draw_date}")
-        logger.info(f"days_since_confirmed: {days_since_confirmed}")
-        logger.info(f"type_of_days_since_confirmed: {type(days_since_confirmed)}")
-        logger.info(f"days_till_event: {days_till_event}")
 
         if isinstance(draw.event.draw_date, datetime):
             drawing_date = draw.event.draw_date
@@ -63,16 +56,11 @@ def check_not_collected_draws():
             drawing_date = datetime_now
 
         for event_reminder_day in event_reminder_days:
-            logger.info(f"checking draws for {event_reminder_day} days before...")
             if (
                 days_since_confirmed >= timedelta(days=2)
                 and days_till_event == timedelta(days=event_reminder_day)
                 and drawing_time_difference < timedelta(minutes=0)
             ):
-                logger.info("ok")
-                logger.info(draw)
-                logger.info(f"there are only {days_till_event.days} days till event")
-                logger.info("SENDING REMINDER")
                 from_email = "pbrqsl@gmail.com"  # noqa
                 to_email = "pbronikowski@gmail.com"  # noqa
                 participant_name = draw.participant.name
@@ -83,7 +71,6 @@ def check_not_collected_draws():
                 url_prefix = (Site.objects.get_current()).name
                 invite_url = f"http://{url_prefix}/login/?token={user_token}&next=/events/event_view/{draw.event.token}"
 
-                logger.info(f"invite url: {invite_url}")
                 html_content = render_to_string(
                     "event/email_reminder__auto_days_template.html",
                     {
@@ -99,19 +86,11 @@ def check_not_collected_draws():
                     to_email=to_email,
                     html_content=html_content,
                 )
-    logger.info(f"draws_not_collected: {draws_no_collected}")
-
-    # 49-56 -> 58-60 (zamiana)
-    # mail.send_mail(
-    #     subject, plain_message, from_email, [to_email], html_message=html_content
-    # )
-
     return "scheduled task test"
 
 
 @email_queue.task()
 def time_to_event_1w():
-    # your event starts in one week, go to the event page for details
     return "it's 22:12"
 
 

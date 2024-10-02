@@ -41,7 +41,6 @@ def exludes_queryset_to_dict(excludes_queryset):
 
 def get_and_validate_event(event: Event):
     is_valid = True
-    # participants_queryset = get_list_or_404(Participant, event=event)
     participants_queryset = Participant.objects.filter(event=event)
     excludes_queryset = Exclusion.objects.filter(event=event)
 

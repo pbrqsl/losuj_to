@@ -58,7 +58,6 @@ class EventCreateForm(forms.Form):
         cleaned_data = super().clean()
         event_date = cleaned_data.get("event_date")
         draw_date = cleaned_data.get("draw_date")
-        print(f"draw_date: {draw_date}")
         if draw_date and draw_date.date() >= event_date:
             self.add_error("draw_date", "Draw date must occur before the event date.")
 

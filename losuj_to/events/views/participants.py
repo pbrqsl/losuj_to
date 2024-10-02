@@ -361,9 +361,6 @@ class ParticipantWishCreateView(FormView, LoginRequiredMixin):
             Participant, user__email=self.request.user.email, event=event
         )
         description = form.cleaned_data["description"]
-        print(event)
-        print(participant)
-        print(description)
         Wish.objects.create(
             event=event, description=description, participant=participant
         )

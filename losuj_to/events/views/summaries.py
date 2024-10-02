@@ -156,8 +156,6 @@ class EventListView(LoginRequiredMixin, TemplateView):
         all_events = list(chain(participated_events, owned_events))
         all_events = list(set(all_events))
         all_events = sorted(all_events, key=attrgetter("event_date"))
-        print(type(all_events))
-        print(all_events)
         return render(
             request,
             self.template_name,
