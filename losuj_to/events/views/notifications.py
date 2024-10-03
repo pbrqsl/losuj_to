@@ -132,11 +132,6 @@ class InvitationReminderWishesView(TemplateView, LoginRequiredMixin):
 
 
 class InvitationWaitTemplateView(TemplateView, LoginRequiredMixin):
-    # success_url = "event_send_invitation_status_stream"
-    # template_name = "event/event_invitation_wait.html"
-    # redirect_url = "event_summary"
-    # success_message = "Invite sent"
-
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         task_ids = self.kwargs.get("task_ids")
         event_id = self.kwargs.get("pk")

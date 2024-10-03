@@ -8,14 +8,10 @@
 
     <script>
         if(typeof(EventSource) !== "undefined") {
-            //document.getElementById("result").innerHTML = "starting1";
             var source = new EventSource("{% url 'event_send_invitation_wishes_status_stream' event_id task_ids %}");
-            //console.log(source)
             source.onmessage = (event) => {
                 console.log("A");
                 console.log(event.data)
-                //document.getElementById("result").innerHTML += event.data;
-
                 if (event.data === "Emails sent") {
                     document.getElementById("result").innerHTML += "<br>closing connection";
                     source.close()

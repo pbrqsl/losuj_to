@@ -45,13 +45,9 @@
 
             {{wish.description}} |
             <a href="#" class="wish_delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">delete</a>
-            <!-- <form action='{% url "event_wish_delete" pk=wish.id event_id=event_data.event_id %}' " style="display:inline;" id="my_wish_{{wish.id}}"> -->
 
                 {% csrf_token %}
-            <!-- <button>delete</button> -->
-            <!-- <a href="javascript:{}" onclick="document.getElementById('my_wish_{{wish.id}}').submit(); return false;">delete (trash can)</a> -->
-
-            <!--  </form> --> <br>
+            <br>
         {% endfor %}
 
         {% else %}

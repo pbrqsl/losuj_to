@@ -39,7 +39,7 @@ def check_not_collected_draws():
     datetime_now = datetime_now.astimezone(local_timezone)
     datetime_now = datetime_now.replace(tzinfo=None)
 
-    event_reminder_days = [1, 4, 3, 7, 2, 6, 5]
+    event_reminder_days = [1, 2, 4, 7, 14, 20]
 
     for draw in draws_no_collected:
         date_confirmed = draw.event.confirmed_date

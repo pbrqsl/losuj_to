@@ -144,15 +144,26 @@ class EventListView(LoginRequiredMixin, TemplateView):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         owned_events = Event.objects.filter(owner=request.user)
-        participating = Participant.objects.filter(user__email=request.user)
+        participating = Participant.objects.filter(user__email=request.user).filter(
+            event__confirmed=True
+        )
+        # participating = Participant.objects.filter(user__email=request.user)
         participated_events = []
 
         participating_events_list = participating.values_list(
             "event", flat=True
         ).distinct()
 
-        participated_events = Event.objects.filter(pk__in=participating_events_list)
+        drawing_statuses = {}
 
+        participated_events = Event.objects.filter(pk__in=participating_events_list)
+        for event in participated_events:
+            drawing_status = Draw.objects.get(
+                event=event, participant__user=request.user
+            ).collected
+            drawing_statuses[event.id] = drawing_status
+
+        # print(participated_events_list)
         all_events = list(chain(participated_events, owned_events))
         all_events = list(set(all_events))
         all_events = sorted(all_events, key=attrgetter("event_date"))
@@ -163,5 +174,6 @@ class EventListView(LoginRequiredMixin, TemplateView):
                 "owned_events": owned_events,
                 "participated_events": participated_events,
                 "all_events": all_events,
+                "drawing_statuses": drawing_statuses,
             },
         )
