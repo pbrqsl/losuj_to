@@ -7,7 +7,8 @@
 
   <p>Event date: {{ event_data.event_date }}</p>
 
-  {% if event_data.draw_date != None %}
+
+  {% if not event_data.can_collect %}
 
 
   <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
@@ -19,107 +20,50 @@
     {% else %}
         Click <a href="#" id="unhide_name">here</a> to unhide your drawn name.
 
-        <h1 style="display: none" id="drawn_name">{{ event_data.drawn_participant }}</h1>
 
+        <div style="display: none" id="drawn_name">
+        <h1 >{{ event_data.drawn_participant }}</h1>
+        {% if event_data.drawn_participant_wishes %}
+        {% for wish in event_data.drawn_participant_wishes %}
+
+            {{wish.description}} <br>
+        {% endfor %}
+
+        {% else %}
+        <h3>Currently your participant does not have any wishes.</h3>
+        <h2>send a reminder?</h2>
+        <a href='{% url "send_reminder_wishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>Send a reminder.</a>
+        {% endif %}
+        </div>
+    {% endif %}
+    <br><br>
+
+
+    {% if event_data.participant_wishes %}
+    <h3>your wishlist....</h3>
+        {% for wish in event_data.participant_wishes %}
+
+            {{wish.description}} |
+            <a href="#" class="wish_delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">delete</a>
+
+                {% csrf_token %}
+            <br>
+        {% endfor %}
+
+        {% else %}
+        <h3>Currently your wishlist is empty :(</h3>
     {% endif %}
 
-    <h3>your whishlist....</h3>
 
 
-  {% endif %}
 
+    <a href='{% url "event_wish_create" pk=event_data.event_id %}'>add a wish</a>
 
   {% if event_data.event_location != '' %}
   <p>Event Location: {{ event_data.event_location }}</p>
 
   {% endif %}
-
-
-  {% if excludes %}
-
-
-{% endif %}
-
-<!-- <style>
-    .container {
-        display: grid;
-        width: 70%;
-        display: none;
-    }
-    .container-unhidden {
-        display: grid;
-        width: 70%;
-    }
-
-    .left-column {
-        grid-column: 1;
-        grid-row: 2;
-        width: 100%;
-        align-items: center;
-
-        padding-right: 40px;
-    }
-
-    .right-column {
-        grid-column: 2;
-        grid-row: 2;
-        align-items: center;
-
-        padding-left: 40px;
-        padding-right: 100px;
-
-    }
-
-    .drop-container {
-        width: 500px;
-        height: 50px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-        position: relative; /* Required for positioning the label */
-    }
-
-    .drop-container::before {
-        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
-        position: absolute;
-        top: 50%;
-        left: 80%;
-        transform: translate(-50%, -50%);
-        color: #ccc;
-        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
-        font-family: Arial, Helvetica, sans-serif ;
-    }
-
-    .pool-container {
-        width: 100%;
-        height: 80px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-    }
-
-    .draggable {
-        cursor: move;
-        display: inline-block;
-        margin: 5px;
-        padding: 5px;
-        border: 1px solid #000;
-        font-family: Arial, Helvetica, sans-serif;
-        border-radius: 10px;
-        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .delete-button {
-        cursor: pointer;
-        color: red;
-        margin-left: 5px;
-    }
-</style>
--->
+  {% endif %}
 
 
 
@@ -148,13 +92,12 @@
         const collectDrawButton = document.getElementById('collect_draw');
         const collectUnhideNameLink = document.getElementById('unhide_name');
         const collectDrawnName = document.getElementById('drawn_name');
+        const deleteWishButton = document.getElementsByClassName('wish_delete')
 
-        console.log(collectDrawButton)
+
         if (collectDrawButton) {
             collectDrawButton.addEventListener('click', function() {
-                console.log(getCSRFTToken());
                 const drawId = this.getAttribute('data-draw-id')
-                console.log(drawId);
                 fetch(`/api/draw_collected/${drawId}`, {
                     method: 'PATCH',
                     headers: {
@@ -168,13 +111,37 @@
                 .then(response => {
                         if (response.ok) {
                             alert('Gift collection status updated successfully!')
-                            console.log('OK')
                             location.reload()
                         } else {
                             alert('Thre was an issue with yor request.')
                         }
                     });
                 })
+            };
+
+        if (deleteWishButton) {
+            for (var i = 0 ; i < deleteWishButton.length; i++) {
+                let wish_id = deleteWishButton[i].id;
+                let event_id = "{{event_data.event_id}}"
+                const endpoint = `/events/event_wish_delete/${wish_id}/${event_id}`
+                deleteWishButton[i].addEventListener('click' ,() => {
+                    "event_wish_delete/<int:pk>/<int:event_id>"
+                    fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+
+                    }).then(response => {
+                        if (response.status === 200) {
+                            window.location.reload();
+
+                        }
+                    })
+
+                 } , false ) ;
+}
             };
 
 

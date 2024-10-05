@@ -1,4 +1,6 @@
 from datetime import datetime
+from itertools import chain
+from operator import attrgetter
 from typing import Any
 
 import pytz
@@ -10,7 +12,7 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 from events.helpers import get_and_validate_event, get_event_by_hash, get_event_by_pk
 from events.mixins import EventOwnerMixin
-from events.models import Draw, Event, Participant
+from events.models import Draw, Event, Participant, Wish
 
 
 class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
@@ -94,10 +96,14 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             raise Http404
 
         if event.draw_date:
-            utc_timezone = pytz.timezone("UTC")
-            current_time = datetime.now()
-            current_time = utc_timezone.localize(current_time)
-            if event.draw_date < current_time:
+            datetime_now = datetime.now()
+            local_timezone = pytz.timezone("Europe/Berlin")
+            datetime_now = datetime_now.astimezone(local_timezone)
+            datetime_now = datetime_now.replace(tzinfo=None)
+            drawing_date = event.draw_date
+            drawing_date = drawing_date.replace(tzinfo=None)
+
+            if drawing_date <= datetime_now:
                 can_collect = True
         else:
             can_collect = True
@@ -106,6 +112,11 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             Participant, user__email=self.request.user.email, event=event
         )
         draw = get_object_or_404(Draw, event=event, participant=participant)
+
+        participant_wishes = Wish.objects.filter(event=event, participant=participant)
+        drawn_paricipant_wishes = Wish.objects.filter(
+            event=event, participant=draw.drawn_participant
+        )
 
         event_data = {
             "event_name": event.event_name,
@@ -117,9 +128,12 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "event_id": event.id,
             "draw_collected": draw.collected,
             "drawn_participant": draw.drawn_participant.name,
+            "drawn_participant_id": draw.drawn_participant.id,
             "participant": participant.name,
             "can_collect": can_collect,
             "draw_id": draw.id,
+            "participant_wishes": participant_wishes,
+            "drawn_participant_wishes": drawn_paricipant_wishes,
         }
 
         return render(request, self.template_name, context={"event_data": event_data})
@@ -130,20 +144,36 @@ class EventListView(LoginRequiredMixin, TemplateView):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         owned_events = Event.objects.filter(owner=request.user)
-        participating = Participant.objects.filter(user__email=request.user)
+        participating = Participant.objects.filter(user__email=request.user).filter(
+            event__confirmed=True
+        )
+        # participating = Participant.objects.filter(user__email=request.user)
         participated_events = []
 
         participating_events_list = participating.values_list(
             "event", flat=True
         ).distinct()
 
-        participated_events = Event.objects.filter(pk__in=participating_events_list)
+        drawing_statuses = {}
 
+        participated_events = Event.objects.filter(pk__in=participating_events_list)
+        for event in participated_events:
+            drawing_status = Draw.objects.get(
+                event=event, participant__user=request.user
+            ).collected
+            drawing_statuses[event.id] = drawing_status
+
+        # print(participated_events_list)
+        all_events = list(chain(participated_events, owned_events))
+        all_events = list(set(all_events))
+        all_events = sorted(all_events, key=attrgetter("event_date"))
         return render(
             request,
             self.template_name,
             context={
                 "owned_events": owned_events,
                 "participated_events": participated_events,
+                "all_events": all_events,
+                "drawing_statuses": drawing_statuses,
             },
         )

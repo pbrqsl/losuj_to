@@ -29,7 +29,7 @@ class Event(models.Model):
     token = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self) -> str:
-        return self.event_name
+        return f"{self.event_name}:[{self.event_date}]"
 
     def save(self, *args, **kwargs) -> None:
         super().save(*args, **kwargs)
@@ -52,10 +52,13 @@ class Participant(models.Model):
         return f"{self.name}"
 
 
-class Whish(models.Model):
+class Wish(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     description = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.description}"
 
 
 class Draw(models.Model):
@@ -114,3 +117,6 @@ class EmailTask(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     email = models.EmailField()
     status = models.CharField(max_length=3, choices=Status.choices, null=True)
+
+    def __repr__(self):
+        return f"owner: {self.owner}; event: {self.event}; email: {self.email}; status: {self.status}; "

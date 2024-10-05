@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.forms import HiddenInput
-from events.models import Event
+from events.models import Event, Wish
 
 
 class EventCreateForm(forms.Form):
@@ -40,6 +40,7 @@ class EventCreateForm(forms.Form):
             attrs={"type": "datetime-local", "class": "event_input"}
         ),
         label="Date of Drawing Names",
+        localize=True,
     )
     price_limit = forms.IntegerField(
         required=False,
@@ -142,3 +143,9 @@ class EventConfirmActivationForm(forms.Form):
 
 class EventConfirmDeactivationForm(forms.Form):
     pass
+
+
+class WishCreateForm(forms.ModelForm):
+    class Meta:
+        model = Wish
+        fields = ["description"]

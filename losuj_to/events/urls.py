@@ -7,9 +7,12 @@ from events.views.crud import (
 )
 from events.views.notifications import (
     InvitationReminderView,
+    InvitationReminderWishesView,
     InvitationSendView,
     InvitationStreamWaitView,
     InvitationWaitView,
+    InvitationWishesStreamWaitView,
+    InvitationWishesWaitView,
 )
 from events.views.participants import (
     BulkUserRegistration,
@@ -17,6 +20,8 @@ from events.views.participants import (
     ParticipantExcludeCreateView,
     ParticipantExcludeUpdateView,
     ParticipantUpdateView,
+    ParticipantWishCreateView,
+    ParticipantWishDeleteView,
 )
 from events.views.summaries import (
     EventAdminDetailView,
@@ -60,6 +65,16 @@ urlpatterns = [
         name="event_excludes_update",
     ),
     path(
+        "event_wish_create/<int:pk>",
+        ParticipantWishCreateView.as_view(),
+        name="event_wish_create",
+    ),
+    path(
+        "event_wish_delete/<int:pk>/<int:event_id>",
+        ParticipantWishDeleteView.as_view(),
+        name="event_wish_delete",
+    ),
+    path(
         "event_toggle_active/<int:pk>",
         EventActivateView.as_view(),
         name="event_toggle_active",
@@ -80,9 +95,19 @@ urlpatterns = [
         name="send_reminder",
     ),
     path(
+        "send_reminder_wishes/<int:pk>/<int:participant_id>",
+        InvitationReminderWishesView.as_view(),
+        name="send_reminder_wishes",
+    ),
+    path(
         "send_invitations_wait/<int:pk>/<str:task_ids>",
         InvitationWaitView.as_view(),
         name="send_invitations_wait",
+    ),
+    path(
+        "send_invitations_wishes_wait/<int:pk>/<str:task_ids>",
+        InvitationWishesWaitView.as_view(),
+        name="send_invitations_wishes_wait",
     ),
     path(
         "event_list/",
@@ -93,5 +118,10 @@ urlpatterns = [
         "status_stream/<int:pk>/<str:task_ids>",
         InvitationStreamWaitView.as_view(),
         name="event_send_invitation_status_stream",
+    ),
+    path(
+        "status_stream_wishes/<int:pk>/<str:task_ids>",
+        InvitationWishesStreamWaitView.as_view(),
+        name="event_send_invitation_wishes_status_stream",
     ),
 ]

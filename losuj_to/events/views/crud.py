@@ -52,7 +52,6 @@ class EventCreateView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         event_data = form.cleaned_data
-
         form.cleaned_data["draw_date"] = (
             event_data.get("draw_date").strftime("%Y-%m-%dT%H:%M:%S")
             if event_data.get("draw_date")
@@ -134,6 +133,10 @@ class EventActivateView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         event_id = self.kwargs.get("pk")
         event = get_event_by_pk(event_id=event_id)
         date_now = datetime.now().date()
+        event_validate = get_and_validate_event(event=event)
+        participants = event_validate["participants"]
+
+        no_action_url = reverse(self.no_action_url, kwargs={"pk": event.id})
 
         if event.event_date < date_now:
             messages.add_message(
@@ -141,7 +144,16 @@ class EventActivateView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
                 messages.ERROR,
                 "You cannot activate the event which occurs in the past!",
             )
-            no_action_url = reverse(self.no_action_url, kwargs={"pk": event.id})
+
+            return redirect(no_action_url)
+
+        if len(participants) < 3:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                "The number of participants is not correct.",
+            )
+
             return redirect(no_action_url)
 
         return render(request, self.template_name, {"form": form})
@@ -188,6 +200,7 @@ class EventDeactivateView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         draw_results.delete()
 
         event.confirmed = False
+        event.confirmed_date = None
         event.save()
 
         return redirect(success_url)

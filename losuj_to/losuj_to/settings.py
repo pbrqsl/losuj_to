@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "users.management.commands.update_site",
     # "background_task",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

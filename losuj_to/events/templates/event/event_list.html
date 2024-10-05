@@ -1,106 +1,55 @@
 {% extends 'website/base.html' %}
 
 {% block content %}
+
+{% load tz %}
+
+{% now "Y-m-d H:i:s" as current_time %}
+
+
   <h2>Event List</h2>
-  {%for event in owned_events%}
-        <p>{{event.event_name}}
-        {{event.owner}}
-        {{user}}
-        <a href='{% url "event_summary" pk=event.id %}'>manage event</a>
-        {% if event in participated_events %}
-        <a href='{% url "event_view" pk=event.id %}'>go to event</a>
-        {% endif %}
-        </p>
+    {{drawing_statuses}}
+  {%for event in all_events%}
+    {% with event_id=event.id %}
+<div>
+    <div class="event-item">
+        <div class="event-header">
+            <span class="event-name">{{event.event_name}}</span>
+            <span>
+                Event date:
+                <span class="event-date">{{event.event_date}}</span>
+                {% if event.draw_date %}
+                <br>Draw date: <span class="event-date">{{event.draw_date}}</span>
+                <br> {{ current_time|timezone:"Europe/Paris" }}
+                {% endif %}
+                {% if event.confirmed == True %}
+                <!--<span class="event-status active_event">Active</span>-->
+                {% else %}
+                <span class="event-status inactive">Inactive</span>
+                {% endif %}
+                >>{{  drawing_statuses.event_id }}
+                >>{{  drawing_statuses.1 }}
+            </span>
+
+        </div>
+        <div class="event-details">
+            <span class="event-owner">owner: {{event.owner}}</span>
+
+            <div class="event-actions"></div>
+            {% if event in owned_events %}
+            <span class="manage-link"><a href='{% url "event_summary" pk=event.id %}'>manage event</a></span>
+            {% endif %}
+            {% if event in participated_events %}
+            <span class="guest-link"><a href='{% url "event_view" pk=event.id %}'>go to event</a></span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+  {% endwith %}
   {% endfor %}
-  {%for event in participated_events%}
-        {% if event not in owned_events %}
-        <p>{{event.event_name}}
-            {{event.owner}}
-            {{user}}
-        <a href='{% url "event_view" pk=event.id %}'>go to event</a>
-        </p>
-        {% endif %}
-  {% endfor %}
 
 
-<!--<style>
-    .container {
-        display: grid;
-        width: 70%;
-        display: none;
-    }
-    .container-unhidden {
-        display: grid;
-        width: 70%;
-    }
 
-    .left-column {
-        grid-column: 1;
-        grid-row: 2;
-        width: 100%;
-        align-items: center;
 
-        padding-right: 40px;
-    }
-
-    .right-column {
-        grid-column: 2;
-        grid-row: 2;
-        align-items: center;
-
-        padding-left: 40px;
-        padding-right: 100px;
-
-    }
-
-    .drop-container {
-        width: 500px;
-        height: 50px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-        position: relative; /* Required for positioning the label */
-    }
-
-    .drop-container::before {
-        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
-        position: absolute;
-        top: 50%;
-        left: 80%;
-        transform: translate(-50%, -50%);
-        color: #ccc;
-        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
-        font-family: Arial, Helvetica, sans-serif ;
-    }
-
-    .pool-container {
-        width: 100%;
-        height: 80px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-    }
-
-    .draggable {
-        cursor: move;
-        display: inline-block;
-        margin: 5px;
-        padding: 5px;
-        border: 1px solid #000;
-        font-family: Arial, Helvetica, sans-serif;
-        border-radius: 10px;
-        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .delete-button {
-        cursor: pointer;
-        color: red;
-        margin-left: 5px;
-    }
-</style> -->
 
 {% endblock %}
