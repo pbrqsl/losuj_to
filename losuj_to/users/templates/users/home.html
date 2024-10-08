@@ -1,34 +1,24 @@
 {% extends 'website/base.html' %}
+{% load static %}
 
 {% block content %}
 
-{% if user.is_authenticated %}
-
-<svg width="300" height="300" style="border:1px solid #000;">
-    <!-- Draw the present box -->
-    <rect x="50" y="50" width="200" height="200" stroke="#8B0000" stroke-width="2" fill="none"></rect>
-
-    <!-- Draw some decorative elements -->
-    <rect x="50" y="40" width="10" height="10" fill="#00FF00"></rect>
-    <rect x="120" y="40" width="10" height="10" fill="#00FF00"></rect>
-    <rect x="190" y="40" width="10" height="10" fill="#00FF00"></rect>
-    <rect x="50" y="250" width="10" height="10" fill="#00FF00"></rect>
-    <rect x="120" y="250" width="10" height="10" fill="#00FF00"></rect>
-    <rect x="190" y="250" width="10" height="10" fill="#00FF00"></rect>
-
-    <!-- Draw the vector dog -->
-    <ellipse cx="150" cy="170" rx="40" ry="30" fill="#8B4513"></ellipse> <!-- Dog body -->
-    <circle cx="130" cy="160" r="5" fill="black"></circle> <!-- Left eye -->
-    <circle cx="170" cy="160" r="5" fill="black"></circle> <!-- Right eye -->
-    <rect x="140" y="180" width="20" height="5" fill="black"></rect> <!-- Mouth -->
-
-    <!-- You can add more elements to make the dog more detailed -->
-</svg>
-                    {% else %}
-                    version for not authenticated users
-
-{% endif  %}
-
+<section>
+    <div class="main-page-div">
+        <div class="left-pane-div">
+            <img class="main-image" src="{% static 'assets/images/losuj_to_main.png' %}">
+             <!-- [IMAGE PLACEHOLDER] -->
+        </div>
+        <div class="right-pane-div">
+            <header class="right-pane-upper">
+                <h1>Welcome to!</h1>
+            </header>
+            <div class="right-pane-lower">
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            </div>
+        </div>
+    </div>
+</section>
 
 
 

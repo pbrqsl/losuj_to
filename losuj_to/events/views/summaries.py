@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 import pytz
@@ -162,6 +162,7 @@ class EventListView(LoginRequiredMixin, TemplateView):
 
         events_dict = {}
         for event in owned_events:
+            event_class = "event-item"
             events_dict[event.id] = {
                 "event_name": event.event_name,
                 "owner": event.owner.email,
@@ -181,8 +182,15 @@ class EventListView(LoginRequiredMixin, TemplateView):
             events_dict[event.id]["show_draw_date"] = (
                 True if drawing_date > datetime_now else False
             )
+            date_now = datetime.now().date()
+            days_till_event = event.event_date - date_now
+
+            if days_till_event < timedelta(days=-7):
+                event_class += " older-than-7"
+            events_dict[event.id]["event_class"] = event_class
 
         for event in participated_events:
+            event_class = "event-item"
             drawing_status = Draw.objects.get(
                 event=event, participant__user=request.user
             ).collected
@@ -211,21 +219,20 @@ class EventListView(LoginRequiredMixin, TemplateView):
             events_dict[event.id]["show_draw_date"] = (
                 True if drawing_date > datetime_now else False
             )
+            date_now = datetime.now().date()
+            days_till_event = event.event_date - date_now
+            if days_till_event < timedelta(days=-7):
+                event_class += " older-than-7"
+            events_dict[event.id]["event_class"] = event_class
 
         events_list = []
         for key in events_dict:
             events_dict[key]["id"] = key
             events_list.append(events_dict[key])
 
-        print(events_list)
         events_list_by_date = sorted(events_list, key=lambda d: d["event_date"])
 
-        # print(participated_events_list)
-
         local_timezone = pytz.timezone("Europe/Berlin")
-        datetime_now = datetime.now()
-        datetime_now = datetime_now.astimezone(local_timezone)
-        datetime_now = datetime_now.replace(tzinfo=None)
         return render(
             request,
             self.template_name,

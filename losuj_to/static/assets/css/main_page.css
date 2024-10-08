@@ -1,0 +1,39 @@
+section {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+.main-image {
+
+    border-radius: 30px;
+    padding: 10px;
+    width: 300px;
+  }
+
+.main-page-div {
+    display:flex;
+}
+
+.left-pane-div {
+
+}
+
+.right-pane-div {
+    padding: 10px;
+
+    left: 10px;
+
+}
+
+.right-pane-div-upper {
+    position: relative;
+    font-size: large;
+
+}
+
+.right-pane-div-lower {
+    margin-top: 10px;
+
+}

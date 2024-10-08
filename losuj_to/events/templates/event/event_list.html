@@ -8,11 +8,13 @@
 
 
   <h2>Event List</h2>
-    {{drawing_statuses}}
+    <input type="checkbox" id="older-than-7-d" onchange="showOlderThan7()">
+    Show older than 7 days<br>
   {%for event in events_list%}
 
+
 <div>
-    <div class="event-item">
+    <div class="{{event.event_class}}">
         <div class="event-header">
             <span class="event-name">{{event.event_name}}</span>
             <span>
@@ -22,20 +24,21 @@
                 {% if event.show_draw_date %}
                 <br>Draw date: <span class="event-date">{{event.event_draw_date}}</span>
 
-                <br> current time: {{ datetime_now }}
+
 
                 {% else %}
-                  {% if event.participated %}
-                  <br>draw collected?: {{ event.draw_collected }} .<br>
+                  {% if event.participated and not event.draw_collected %}
+                  <div><span class="event-status inactive">Draw pending!</span></div>
                   {% endif %}
 
                 {% endif %}
                 {% if event.event_confirmed == True %}
 
-                <!--<span class="event-status active_event">Active</span>-->
+
                 {% else %}
                 <span class="event-status inactive">Inactive</span>
                 {% endif %}
+
 
 
 
@@ -52,13 +55,45 @@
             {% if event.participated %}
             <span class="guest-link"><a href='{% url "event_view" pk=event.id %}'>go to event</a></span>
             {% endif %}
+            <!-- {{event.older_than_7_days}} -->
         </div>
     </div>
 </div>
   {% endfor %}
 
 
+<script>
 
+window.onload = function () {
+    const items = document.getElementsByClassName("older-than-7")
+    for (const child of items) {
+        child.style.display = "none";
+      }
+
+
+        };
+
+
+function showOlderThan7() {
+  let checkbox = document.getElementById("older-than-7-d")
+  const items = document.getElementsByClassName("older-than-7")
+
+  if (checkbox.checked) {
+      for (const child of items) {
+        child.style.display = "block";
+      }
+    }
+    else {
+
+
+      for (const child of items) {
+
+        child.style.display = "none";
+      }
+
+    }
+}
+</script>
 
 
 {% endblock %}
