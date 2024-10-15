@@ -116,6 +116,10 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             event=event, participant=draw.drawn_participant
         )
 
+        event_validate = get_and_validate_event(event)
+        participants = event_validate["participants"]
+        print(participants)
+
         event_data = {
             "event_name": event.event_name,
             "event_location": "",
@@ -132,6 +136,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "draw_id": draw.id,
             "participant_wishes": participant_wishes,
             "drawn_participant_wishes": drawn_paricipant_wishes,
+            "participants": participants,
         }
 
         return render(request, self.template_name, context={"event_data": event_data})

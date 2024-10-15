@@ -1,77 +1,291 @@
 {% extends 'website/base.html' %}
 
 {% block content %}
-  <h2>{{ event_data.event_name }}</h2>
+    <style>
+        /* body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        } */
 
-  <h3>Hello {{ event_data.participant }} </h3>
+        .container-event {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            border: 0px solid #ccc;
+            /* font-family: 'Courier New', Courier, monospace; */
+            /* background-color: red; */
 
-  <p>Event date: {{ event_data.event_date }}</p>
+        }
+
+        .row-event {
+            display: flex;
+            width: 100%;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            /* background-color: rgb(184, 200, 202); */
+            align-items: flex-start;
+
+        }
+
+        .row-event:first-child .item-event:first-child {
+            flex-grow: 0;
+            flex-shrink: 1;
+            flex-basis: 70%;
+            box-sizing: border-box;
+            /* border-radius: 10px; */
+        }
+
+        .row-event:first-child .item-event:last-child {
+            flex-grow: 0;
+            flex-shrink: 1;
+            flex-basis: 30%;
+            box-sizing: border-box;
+
+        }
+
+        .row-event:last-child .item-event {
+            flex: 1;
+            box-sizing: border-box;
+            height: auto;
+        }
+
+        .row-event:nth-child(2) {
+            display: flex;
+            flex-wrap: wrap; /* Optional: Allow elements to wrap to the next line */
+            }
+
+        .item-event {
+            flex-grow: 0; /* Allow elements to grow to fill available space */
+            flex-basis: auto;
+            background-color: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .item-event h2 {
+            margin: 0 0 10px ;
+        }
+
+        .item-event p {
+            margin: 0;
+        }
+
+        .item-event a {
+            margin: 0;
+            border-radius: 5px;
+        }
 
 
-  {% if not event_data.can_collect %}
+        .add-a-wish {
+            background: none;
+            border: 1px solid #2196f3;
+            padding: 8px 12px;
+            font-family: arial, sans-serif;
+            color: #069;
+            background-color: #069;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .add-a-wish:hover {
+            background-color: #2196f3;
+            color: white;
+        }
+        .unhide {
+            background: none;
+            border: 1px solid #2196f3;
+            padding: 8px 12px;
+            font-family: arial, sans-serif;
+            color: #069;
+            background-color: #069;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .unhide:hover {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .send-a-reminder {
+            background: none;
+            border: 1px solid #2196f3;
+            padding: 8px 12px;
+            font-family: arial, sans-serif;
+            color: #069;
+            background-color: #069;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .send-a-reminder:hover {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .collect-draw {
+            background: none;
+            border: 1px solid #2196f3;
+            padding: 8px 12px;
+            font-family: arial, sans-serif;
+            color: #069;
+            background-color: #069;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .collect-draw:hover {
+            background-color: #2196f3;
+            color: white;
+        }
 
 
-  <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
 
-  {% else %}
-    {% if not event_data.draw_collected %}
-        You can now draw your gift taker!
-        <button id="collect_draw" data-draw-id="{{ event_data.draw_id }}">Draw!</button>
-    {% else %}
-        Click <a href="#" id="unhide_name">here</a> to unhide your drawn name.
+        .item-event:not(:last-child) {
+           margin-right: 10px;
+        }
+
+        .close-icon {
+            font-size: 18px;
+        }
+
+        .wish-item {
+            /* border: 1px solid;
+            padding: 5 5 5 5; */
+            display: flex;
+            align-items: center;
+
+        }
+        .wish-delete {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+        }
 
 
-        <div style="display: none" id="drawn_name">
-        <h1 >{{ event_data.drawn_participant }}</h1>
-        {% if event_data.drawn_participant_wishes %}
-        {% for wish in event_data.drawn_participant_wishes %}
 
-            {{wish.description}} <br>
-        {% endfor %}
-
-        {% else %}
-        <h3>Currently your participant does not have any wishes.</h3>
-        <h2>send a reminder?</h2>
-        <a href='{% url "send_reminder_wishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>Send a reminder.</a>
-        {% endif %}
+    </style>
+<!-- </head> -->
+<!-- <body> -->
+    <div class="container-event">
+        <div class="row-event">
+            <div class="item-event">
+                <h2>{{ event_data.event_name }}</h2>
+                <p>taking place at {{ event_data.event_date }}</p>
+                <p>countdown?</p>
+            </div>
+            <div class="item-event">
+                <h2>other details</h2>
+                <p>other item details like place, amount, currency, etc</p>
+            </div>
         </div>
-    {% endif %}
-    <br><br>
+        <div class="row-event">
+            <div class="item-event">
+                <h5>Event participants</h5>
+                {{ participants }}
+                {% for participant in event_data.participants %}
+                    <p>{{participant.1}}
 
+                    {% if event_data.participant == participant.1 %}
+                     (you!)
+                    {% endif %}
+                    </p>
+                {% endfor %}
 
-    {% if event_data.participant_wishes %}
-    <h3>your wishlist....</h3>
-        {% for wish in event_data.participant_wishes %}
-
-            {{wish.description}} |
-            <a href="#" class="wish_delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">delete</a>
-
-                {% csrf_token %}
-            <br>
-        {% endfor %}
-
-        {% else %}
-        <h3>Currently your wishlist is empty :(</h3>
-    {% endif %}
-
-
-
-
-    <a href='{% url "event_wish_create" pk=event_data.event_id %}'>add a wish</a>
-
-  {% if event_data.event_location != '' %}
-  <p>Event Location: {{ event_data.event_location }}</p>
-
-  {% endif %}
-  {% endif %}
+            </div>
+            <div class="item-event">
+                <h5>Your wishes</h5>
+                {% if event_data.participant_wishes %}
+                    {% for wish in event_data.participant_wishes %}
+                    <div class="wish-item">
+                     <span>{{wish.description}}</span>
+                        <a href="#" class="wish-delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">
+                            <span class="material-icons md-18 close-icon">close</span>
+                        </a>
+                    {% csrf_token %}
+                    </div>
+                    {% endfor %}
 
 
 
+
+                <div>
+                    <a class="add-a-wish" href='{% url "event_wish_create" pk=event_data.event_id %}'>
+                        <span>add a wish</span>
+                    </a>
+                </div>
+
+                {% else %}
+                <div>
+                    <span>Currently your wishlist is empty </span>
+                    <a class="add-a-wish" href='{% url "event_wish_create" pk=event_data.event_id %}'>
+                        <span>add your first wish!</span>
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+            <div class="item-event drawn-name">
+                <h5>Drawn name</h5>
+                {% if not event_data.can_collect %}
+
+
+                <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
+
+                {% else %}
+                    {% if not event_data.draw_collected %}
+                    You can now draw your gift taker!
+                    <!-- <button id="collect_draw" data-draw-id="{{ event_data.draw_id }}">Draw!</button> -->
+                    <a href="#" id="collect_draw" class="collect-draw" data-draw-id="{{ event_data.draw_id }}">Draw!</a>
+                    {% else %}
+                    <a class="unhide" href="#" id="unhide_name">unhide</a>
+
+
+                    <div style="display: none" id="drawn_name">
+                    <h1 >{{ event_data.drawn_participant }}</h1>
+                    {% if event_data.drawn_participant_wishes %}
+                    {% for wish in event_data.drawn_participant_wishes %}
+
+                        {{wish.description}}
+                    {% endfor %}
+
+                    {% else %}
+                    <p>Currently your participant does not have any wishes.</p>
+
+                    <a class="send-a-reminder" href='{% url "send_reminder_wishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>
+                        <span>Send a reminder.</span>
+                    </a>
+                    {% endif %}
+                    </div>
+
+
+                    {% endif %}
+                {% endif %}
+
+            </div>
+        </div>
     </div>
+<!-- </body>
+</html> -->
 
-
-
-    <script>
+<script>
     function getCSRFTToken() {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
@@ -92,7 +306,7 @@
         const collectDrawButton = document.getElementById('collect_draw');
         const collectUnhideNameLink = document.getElementById('unhide_name');
         const collectDrawnName = document.getElementById('drawn_name');
-        const deleteWishButton = document.getElementsByClassName('wish_delete')
+        const deleteWishButton = document.getElementsByClassName('wish-delete')
 
 
         if (collectDrawButton) {
@@ -162,5 +376,4 @@
 
 
  </script>
-
 {% endblock %}
