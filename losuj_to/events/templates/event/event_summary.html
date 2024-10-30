@@ -1,0 +1,147 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+  <h2>Event Summary</h2>
+  <p>Event Name: {{ event_data.event_name }}</p>
+  <p>Event date: {{ event_data.event_date }}</p>
+  {% if event_data.draw_date %}
+  <p>Draw date: {{ event_data.draw_date }}</p>
+  {% endif %}
+  <p>Confirmed: {{ event_data.confirmed }}</p>
+
+  {% if event_data.event_location != '' %}
+  <p>Event Location: {{ event_data.event_location }}</p>
+
+  {% endif %}
+  <p><a href='{% url "event_update" pk=event_data.event_id %}'>edit event details</a></p>
+  <p>Participants:</p>
+  {% for participant in participants %}
+  {{participant.1}}
+  {{participant.3}}
+    {% if participant.3 %}
+    draw taken
+    {% else %}
+    draw not taken. <a href='{% url "send_reminder" pk=event_data.event_id participant_id=participant.2 %}'>Send a reminder.</a>
+    {% endif %}
+    </br>
+
+  {% endfor %}
+
+  {% if event_data.confirmed %}
+  <p><i>In order to add or edit pareticipants you should deactivate event first.</i></p>
+
+  {% else %}
+
+  <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>edit paticipants</a></p>
+  {% endif %}
+
+
+
+  <p>Excludes:</p>
+  {% if excludes %}
+
+    {% for participant, excluded_list in excludes.items %}
+        {% for excluded in excluded_list %}
+            {{participant}} cannot draw {{excluded}} <br>
+        {% endfor %}
+
+    {% endfor %}
+{% else %}
+<p>Currently there is no excludes set for this event.</p>
+{% endif %}
+
+
+{% if event_data.confirmed %}
+    <p><i>In order to add or edit existing excludes you should deactivate event first.</i></p>
+    <p><a href='{% url "event_deactivate" pk=event_data.event_id %}'>deactivate event</a> (all draw results will be cancelled)</p>
+{% else %}
+
+    <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit or add excludes</a></p>
+    <p><a href='{% url "event_toggle_active" pk=event_data.event_id %}'>activate the event</a> (any updates will not be possible)</p>
+{% endif %}
+<!--
+<style>
+    .container {
+        display: grid;
+        width: 70%;
+        display: none;
+    }
+    .container-unhidden {
+        display: grid;
+        width: 70%;
+    }
+
+    .left-column {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        align-items: center;
+
+        padding-right: 40px;
+    }
+
+    .right-column {
+        grid-column: 2;
+        grid-row: 2;
+        align-items: center;
+
+        padding-left: 40px;
+        padding-right: 100px;
+
+    }
+
+    .drop-container {
+        width: 500px;
+        height: 50px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+        position: relative; /* Required for positioning the label */
+    }
+
+    .drop-container::before {
+        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
+        position: absolute;
+        top: 50%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+        color: #ccc;
+        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
+        font-family: Arial, Helvetica, sans-serif ;
+    }
+
+    .pool-container {
+        width: 100%;
+        height: 80px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+    }
+
+    .draggable {
+        cursor: move;
+        display: inline-block;
+        margin: 5px;
+        padding: 5px;
+        border: 1px solid #000;
+        font-family: Arial, Helvetica, sans-serif;
+        border-radius: 10px;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .delete-button {
+        cursor: pointer;
+        color: red;
+        margin-left: 5px;
+    }
+</style> -->
+
+
+
+
+
+{% endblock %}

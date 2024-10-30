@@ -1,0 +1,81 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    volumes:
+      - ./losuj_to/:/losuj_to/
+
+    entrypoint: /bin/sh /losuj_to/init_django.sh
+    networks:
+     - network_no_internet
+     - network_internet
+
+
+  db:
+    image: 'postgres:16.2'
+    env_file: 'losuj_to/losuj_to/.env'
+    ports:
+      - 5432:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    networks:
+      - network_internet
+
+  celery:
+    build: .
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=losuj_to.settings
+
+    command: celery -A events.celery_app:email_queue worker -l info
+    volumes:
+      - ./losuj_to/:/losuj_to/
+    depends_on:
+      - app
+      - redis
+    networks:
+      - network_no_internet
+      - network_internet
+
+  celery-beat:
+    build: .
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=losuj_to.settings
+
+    command: celery -A events.celery_app:email_queue beat -l info
+    volumes:
+      - ./losuj_to/:/losuj_to/
+    depends_on:
+      - app
+      - redis
+    networks:
+      - network_no_internet
+      - network_internet
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - network_no_internet
+      - network_internet
+
+networks:
+  network_no_internet:
+    driver: bridge
+    internal: true
+  network_internet:
+    driver: bridge
+
+volumes:
+  pg_data:

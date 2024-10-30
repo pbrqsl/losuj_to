@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--3p4r-9=rte+xqzn6&dbe#%_l(&tpba50t2bzztk$2yevx0c9p"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -46,11 +46,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "users",
+    "events",
+    "api",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "users.management.commands.update_site",
+    # "background_task",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -133,6 +138,8 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
+SESSION_COOKIE_AGE = 3600
+
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
@@ -142,7 +149,7 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_ADAPTER = "users.allauth.CustomAccountAdapter"
 SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
 SOCIALACCOUNT_ADAPTER = "users.adapters.CustomAdapter"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
@@ -169,6 +176,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -178,18 +187,25 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
-# EMAIL_HOST=env("EMAIL_HOST")
-# EMAIL_HOST_USER=env("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD=env("EMAIL_HOST_PASSWORD")
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_HOST_USER = "pbrqsl"
-EMAIL_HOST_PASSWORD = "zgarolnfcjpyhwfn"
+EMAIL_HOST = env("EMAIL_HOST")
+
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = 587
 EMAIL_USE_TML = True
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
-# EMAIL_HOST="smtp.gmail.com"
-# EMAIL_HOST_USER="pbrqsl"
-# EMAIL_HOST_PASSWORD="zgarolnfcjpyhwfn"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+
+# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+# EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+
+# CELERY_BEAT_SCHEDULE = {
+#     "Schedule_1": {
+#         "task": "events.celery_app.some_background_task",
+#         "schedule": crontab(minute="*/1"),
+#     }
+
+# }

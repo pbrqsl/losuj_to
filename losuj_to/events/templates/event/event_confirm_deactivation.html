@@ -1,0 +1,11 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+
+<h2>Deactivate event!</h2>
+<h4>Please note that all drawing results (if any exists) for this event will be removed.</h4>
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Deactivate!</button>
+</form>
+{% endblock %}

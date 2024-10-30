@@ -2,8 +2,6 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from users.managers import CustomUserManager
 
-# Create your models here.
-
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
@@ -17,7 +15,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
-    # REQUIRED_FIELDS = ["username"]
     EMAIL_FIELD = "email"
 
     def __str__(self) -> str:
@@ -25,9 +22,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @classmethod
     def get_email_field_name(cls):
-        print("getting email")
         try:
-            print(cls.EMAIL_FIELD)
             return cls.EMAIL_FIELD
         except AttributeError:
             return "email"

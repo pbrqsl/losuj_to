@@ -1,0 +1,73 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+{% load tz %}
+{#% get_urrent_timezone as TIME_ZONE %#}
+
+<h1>Event details </h1>
+    {% timezone "Europe/Paris" %}
+    {% localtime on %}
+
+
+    <form method="post" id="form1">
+        {% csrf_token %}
+        <div class="fieldWrapper">
+        {% for field in form %}
+        <fieldset class="event_info">
+            <label>{{ field.label }}</label>{{ field }}
+        </fieldset>
+
+            {% for error in field.errors %}
+                 {{ error }}
+            {% endfor %}
+            {% if field.help_text %}
+            <p class="help" id="{{ field.auto_id }}_helptext">
+                {{ field.help_text|safe }}
+            </p>
+            {% endif %}
+        {% endfor %}
+        <fieldset>
+        <button type="submit" class="form-button-custom-1">Go!</button></div>
+        </fieldset>
+
+
+    </form>
+    {% endlocaltime %}
+    {% endtimezone %}
+
+    <p>Note: If no drawing date is provided, the drawing will be initiated by the owner at a later stage.</p>
+    <p>Note: If drawing date is provided, it has to be scheduled at least one day before the event date.</p>
+
+
+<!-- <button id="submit-btn" onclick="submitForm()" disabled>Next</button> -->
+
+<script>
+    function updateSubmitButtonState() {
+        const submitBtn = document.getElementById('submit-btn');
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        const areAllInputsValid = Array.from(formInputs).every(input => input.checkValidity());
+
+        if (areAllInputsValid) {
+            submitBtn.classList.add('active');
+            submitBtn.removeAttribute('disabled');
+        } else {
+            submitBtn.classList.remove('active');
+            submitBtn.setAttribute('disabled', 'disabled');
+        }
+    }
+
+    function submitForm() {
+        const form = document.querySelector('form');
+        // Your submission logic here, e.g., form.submit();
+    }
+
+    // Event listener for input validation
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('input', updateSubmitButtonState);
+    });
+</script>
+
+
+
+{% endblock %}

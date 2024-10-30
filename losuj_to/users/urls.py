@@ -1,24 +1,19 @@
 from django.urls import path
-
-from users.views import (
+from events.views.home import HomeView
+from users.views.login import CustomLoginView, CustomLogoutView, ProfileView
+from users.views.management import (
     CheckIfMailConfirmed,
-    CustomConnectionsView,
-    CustomLoginView,
-    CustomLogoutView,
+    CustomPasswordChangeView,
     CustomPasswordReset,
     CustomPasswordResetComplete,
     CustomPasswordResetConfirm,
     CustomPasswordResetDone,
-    CustomRegisterView,
     CustomSendEmailConfirmation,
-    HomeView,
-    ProfileView,
-    CustomPasswordChangeView,
 )
+from users.views.register import CustomRegisterView
 
 urlpatterns = [
     path("login/", CustomLoginView.as_view(), name="login"),
-    # path("logout/", logout_view, name="logout"),
     path("logout/", CustomLogoutView.as_view(), name="logout"),
     path("profile/", ProfileView.as_view(), name="profile"),
     path("register/", CustomRegisterView.as_view(), name="register"),
@@ -38,11 +33,6 @@ urlpatterns = [
         "reset_password_complete/",
         CustomPasswordResetComplete.as_view(),
         name="password_reset_complete",
-    ),
-    path(
-        "connections/",
-        CustomConnectionsView.as_view(),
-        name="link_google_account",
     ),
     path(
         "checkemail/",

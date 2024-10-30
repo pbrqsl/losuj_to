@@ -1,0 +1,415 @@
+{% extends 'website/base.html' %}
+
+{% load event_tags %}
+
+{% block content %}
+  <h2>Event Information</h2>
+  <p>Event Name: {{ event_data.event_name }}</p>
+
+  {% if event_data.event_location != '' %}
+  <p>Event Location: {{ event_data.event_location }}</p>
+
+  {% endif %}
+
+  <p>Participants:</p>
+  {% for participant in participants %}
+  [{{participant.1}}]
+
+  {% endfor %}
+
+
+
+<style>
+    .container-excludes {
+        display: grid;
+        width: 70%;
+        display: none;
+    }
+    .container-unhidden {
+        display: grid;
+        width: 70%;
+    }
+
+    .form-checkbox {
+        display: none;
+    }
+
+    .left-column {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        align-items: center;
+
+        padding-right: 40px;
+    }
+
+    .right-column {
+        grid-column: 2;
+        grid-row: 2;
+        align-items: center;
+
+        padding-left: 40px;
+        padding-right: 100px;
+
+    }
+
+    .drop-container {
+        width: 500px;
+        height: 50px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+        position: relative; /* Required for positioning the label */
+    }
+
+    .drop-container::before {
+        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
+        position: absolute;
+        top: 50%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+        color: #ccc;
+        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
+        font-family: Arial, Helvetica, sans-serif ;
+    }
+
+    .pool-container {
+        width: 100%;
+        height: 80px;
+        border: 2px dashed #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: inline-block;
+        vertical-align: top; /* Align containers at the top */
+    }
+
+    .draggable {
+        cursor: move;
+        display: inline-block;
+        margin: 5px;
+        padding: 5px;
+        border: 1px solid #000;
+        font-family: Arial, Helvetica, sans-serif;
+        border-radius: 10px;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .delete-button {
+        cursor: pointer;
+        color: red;
+        margin-left: 5px;
+    }
+</style>
+
+
+<body>
+    {% if not excludes %}
+    <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>add paticipants</a></p>
+    <form id="unhide_form">
+
+        <label>
+            <input type="radio" name="options" value="hide" checked> Don't set exclusions
+        </label>
+        <label>
+            <input type="radio" name="options" value="unhide"> Set exclusions
+        </label>
+    </form>
+
+
+    <div class="container-excludes" id="grid_container">
+    {% else %}
+    {{ excludes |json_script:'excludes' }}
+    <form id="unhide_form" class="form-checkbox">
+
+        <label>
+            <input type="radio" name="options" value="hide" checked> Don't set exclusions
+        </label>
+        <label>
+            <input type="radio" name="options" value="unhide"> Set exclusions
+        </label>
+    </form>
+
+
+
+
+    <div class="container-unhidden" id="grid_container">
+    {% endif %}
+
+    {{ participants|json_script:'participants' }}
+
+        {% if participants|length > 3 %}
+        <h2>Exclusions</h2>
+        <div class="right-column">
+            <div id="pool_container" class="pool-container" ondrop="drop(event)" ondragover="allowDrop(event)">
+                {% csrf_token %}
+                {% if participants %}
+                    {% for participant in participants %}
+                <div id="draggable{{forloop.counter}}" class="draggable" draggable="true" ondragstart="drag(event)">{{participant.1}}</div>
+
+                {% endfor %}
+
+                {% endif %}
+            </div>
+        </div>
+        <div class="left-column">
+            {% csrf_token %}
+                {% if participants %}
+                    {% for participant in participants %}
+                    {{participant.0}}
+
+            <div id="targetContainer1" class="drop-container" ondrop="drop(event)" ondragover="allowDrop(event)" data-label="{{participant.1}}">
+                    {% if participant.0 in excludes.keys %}
+                        {% for excluded_participant in excludes|get_value:participant.0 %}
+                            {% for nested_participant in participants %}
+                                {% if nested_participant.0 == excluded_participant %}
+                                <div id="draggable{{forloop.counter}}" class="draggable" draggable="true" ondragstart="drag(event)">{{nested_participant.1}}
+                                    <span class="delete-button" onclick="delete_exclude(this)">X</span>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                </div><br>
+                {% endfor %}
+                {{forloop.counter}}
+            {% endif %}
+        </div>
+
+
+        {% else %}
+        <h2>I'm sorry, the number of participants is too low to set exclusions. There has to be at least 4 participants to set exclusions.</h2>
+        {% endif %}
+    </div>
+    <form id="excludesForm" method="POST">
+        {% csrf_token %}
+        <!-- <button type="submit">Submit</button> -->
+        <button id="submit-btn" onclick="submitForm()">Continue</button>
+    </form>
+
+
+    </div>
+
+
+
+    <script>
+        var sourceContainer;
+
+        //if (excludes) {
+        if (typeof excludes !== 'undefined') {
+                let excludesDictionary = excludes.textContent;
+                console.log("we've got excludes");
+                console.log(excludesDictionary);
+                var excludes_dictionary = JSON.parse(excludesDictionary);
+            } else {
+                var excludes_dictionary = {};
+            }
+        console.log(excludes_dictionary)
+        if (typeof participants !== 'undefined') {
+                //let excludesDictionary = excludes.textContent;
+                console.log("we've got participants");
+                console.log(participants);
+                var participant_dict = {}
+                var participants_list = JSON.parse(participants.textContent);
+                console.log(typeof(participants_list));
+                for (element of participants_list) {
+                    console.log(element[0]);
+                    console.log(element[1]);
+                    participant_dict[element[1]]=element[0];
+
+                }
+                console.log(participant_dict)
+        }
+
+
+
+        window.onload = function () {
+            var poolContainer = document.getElementById("pool_container");
+            sortElements(poolContainer);
+
+
+
+        };
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.getElementById("unhide_form");
+            var optionRadioButtons = form.querySelectorAll('input[name="options"]');
+            var idOneSection = document.getElementById("grid_container");
+
+            // Add event listener to radio buttons
+            optionRadioButtons.forEach(function (radioButton) {
+                radioButton.addEventListener("change", function () {
+                    // Check if Option 2 is selected and show/hide the section accordingly
+                    console.log("switch")
+                    idOneSection.classList.toggle("container-unhidden", radioButton.value !== "hide");
+                });
+            });
+        });
+
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            sourceContainer = event.currentTarget.parentElement; // Store the source container
+            event.dataTransfer.setData("text", event.target.id);
+
+
+        }
+        function drop(event) {
+            event.preventDefault();
+            var data = event.dataTransfer.getData("text");
+            var draggedElement = document.getElementById(data);
+            var dropContainer = event.target;
+            var poolContainer = document.getElementById("pool_container");
+            var poolContainerChildCount = document.getElementById("pool_container").childElementCount;
+            var mainContainer = document.getElementById("grid_container");
+
+            console.log("(drop, sourceContainer):",sourceContainer);
+            console.log("(drop, dropContainer):",dropContainer);
+            console.log("(drop, drageElement):", draggedElement)
+            console.log("(drop, drageElement.textContent):", draggedElement.textContent)
+            console.log("main container",mainContainer)
+            if (mainContainer.classList.contains("container-unhidden")){
+                console.log('unhidden')
+            }
+
+            // Check if the drop target is a container
+
+            if (dropContainer.classList.contains("drop-container") && sourceContainer.classList.contains("pool-container")) {
+                var existingElement = Array.from(dropContainer.children).find(function (child) {
+                    console.log("(drop, child.textContent):", child.textContent)
+                    console.log("(drop, draggedElement.textContent):", draggedElement.textContent)
+                    return child.textContent.replace("X","").trim() === draggedElement.textContent.trim();
+                    });
+                console.log("(drop, dropContainer.getAttribute('data-label')):", dropContainer.getAttribute("data-label"))
+                var isMatchedLabel = draggedElement.textContent === dropContainer.getAttribute("data-label")
+
+                console.log(existingElement);
+                console.log(dropContainer.getAttribute("data-label"));
+                console.log(draggedElement.textContent === dropContainer.getAttribute("data-label"));
+
+                if (existingElement || isMatchedLabel) {
+                    console.log("nope");
+                }
+                else {
+
+                    console.log(dropContainer);
+                    console.log(draggedElement);
+                    dropContainer.appendChild(draggedElement);
+
+
+                    if (sourceContainer.classList.contains("pool-container")) {
+                        sourceContainer.appendChild(draggedElement.cloneNode(true));
+                    }
+                    var deleteButton = document.createElement("span");
+                    deleteButton.className = "delete-button";
+                    deleteButton.textContent = "X";
+                    //deleteButton.onclick = function() {
+                    deleteButton.onclick = () => {
+                        // Remove the element from both drop container and source container
+
+                        dropContainer.removeChild(draggedElement);
+
+                        var data_label = dropContainer.getAttribute("data-label");
+                        var value = draggedElement.textContent.replace("X","");
+
+                        console.log("data_label", data_label);
+                        console.log("value", value);
+                        var index = excludes_dictionary[participant_dict[data_label]].indexOf(value);
+                        excludes_dictionary[participant_dict[data_label]].splice(index, 1);
+                        console.log(index)
+                        console.log(excludes_dictionary)
+                        //sourceContainer.removeChild(draggedElement);
+
+                    };
+                    draggedElement.appendChild(deleteButton);
+
+                    console.log("(drop, dropContainer):", dropContainer);
+                    console.log("(drop, sourceCountainer):", sourceContainer);
+
+                    var dropContainerName = dropContainer.getAttribute("data-label");
+                    console.log(excludes_dictionary)
+
+                    if(!excludes_dictionary[participant_dict[dropContainerName]]) {
+                        excludes_dictionary[participant_dict[dropContainerName]] = [];
+                    }
+                    console.log('--------adding element to-------')
+                    console.log(excludes_dictionary)
+                    excludes_dictionary[participant_dict[dropContainerName]].push(participant_dict[draggedElement.textContent.replace("X","").trim()]);
+                    console.log(excludes_dictionary);
+                    console.log('--------finished adding-------')
+
+                }
+                sortElements(poolContainer);
+
+                //sourceContainer = null;
+
+                console.log('----------------------------------------------')
+            }
+
+        }
+        function delete_exclude(element) {
+                let dropContainer = element.parentNode.parentNode
+                let data_label = dropContainer.getAttribute("data-label");
+                let value = element.parentNode.textContent.replace("X","").trim();
+                let index = excludes_dictionary[participant_dict[data_label]].indexOf(participant_dict[value]);
+                element.parentNode.parentNode.removeChild(element.parentNode)
+                console.log("list before removal", excludes_dictionary[participant_dict[data_label]])
+                excludes_dictionary[participant_dict[data_label]].splice(index, 1);
+                console.log("after: ",excludes_dictionary)
+
+
+                    };
+
+
+        function sortElements(container) {
+            var elements = Array.from(container.children);
+
+            elements.sort(function (a, b) {
+                var textA = a.textContent.trim().toLowerCase();
+                var textB = b.textContent.trim().toLowerCase();
+                return textA.localeCompare(textB);
+            });
+
+            container.innerHTML = ""; // Clear the container
+            elements.forEach(function (element) {
+                container.appendChild(element);
+            });
+        }
+
+
+        function submitForm() {
+            Object.keys(excludes_dictionary).forEach(function (key) {
+                console.log(excludes_dictionary[key])
+                if (excludes_dictionary[key].length == 0) {
+                    delete excludes_dictionary[key];
+                }
+
+            });
+
+            var mainContainer = document.getElementById("container");
+            var form = document.getElementById("excludesForm");
+            var input = document.createElement("input");
+            var mainContainer = document.getElementById("grid_container");
+
+            input.type = "hidden";
+            input.name = "excludes";
+
+
+           if (mainContainer.classList.contains("container-unhidden")) {
+                input.value = JSON.stringify(excludes_dictionary);
+
+            } else {
+                input.value = "{}";
+            }
+
+            form.appendChild(input);
+            console.log(form)
+            form.submit();
+        }
+    </script>
+
+{% endblock %}

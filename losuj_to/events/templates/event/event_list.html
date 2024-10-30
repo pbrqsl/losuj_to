@@ -1,0 +1,55 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+
+{% load tz %}
+
+{% now "Y-m-d H:i:s" as current_time %}
+
+
+  <h2>Event List</h2>
+    {{drawing_statuses}}
+  {%for event in all_events%}
+    {% with event_id=event.id %}
+<div>
+    <div class="event-item">
+        <div class="event-header">
+            <span class="event-name">{{event.event_name}}</span>
+            <span>
+                Event date:
+                <span class="event-date">{{event.event_date}}</span>
+                {% if event.draw_date %}
+                <br>Draw date: <span class="event-date">{{event.draw_date}}</span>
+                <br> {{ current_time|timezone:"Europe/Paris" }}
+                {% endif %}
+                {% if event.confirmed == True %}
+                <!--<span class="event-status active_event">Active</span>-->
+                {% else %}
+                <span class="event-status inactive">Inactive</span>
+                {% endif %}
+                >>{{  drawing_statuses.event_id }}
+                >>{{  drawing_statuses.1 }}
+            </span>
+
+        </div>
+        <div class="event-details">
+            <span class="event-owner">owner: {{event.owner}}</span>
+
+            <div class="event-actions"></div>
+            {% if event in owned_events %}
+            <span class="manage-link"><a href='{% url "event_summary" pk=event.id %}'>manage event</a></span>
+            {% endif %}
+            {% if event in participated_events %}
+            <span class="guest-link"><a href='{% url "event_view" pk=event.id %}'>go to event</a></span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+  {% endwith %}
+  {% endfor %}
+
+
+
+
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+<h1>Bulk User Registration Success</h1>
+
+{% if new_users %}
+    <p>Please review the list of the participant and confirm:</p>
+
+        {% for user in new_users %}
+        <p>
+            <input type="checkbox" name="confirm" value="{{ user.id }}"> {{ user.email }}
+        </p>
+{% endfor %}
+    <input type="submit" value="Confirm Registration">
+
+{% else %}
+    <p>There were no new users to register.</p>
+{% endif %}
+
+{% endblock %}
