@@ -7,9 +7,6 @@ services:
       - 8000:8000
     depends_on:
       - db
-    volumes:
-      - ./losuj_to/:/losuj_to/
-
     entrypoint: /bin/sh /losuj_to/init_django.sh
     networks:
      - network_no_internet
@@ -18,7 +15,7 @@ services:
 
   db:
     image: 'postgres:16.2'
-
+    env_file: 'losuj_to/losuj_to/.env'
     ports:
       - 5432:5432
     volumes:
@@ -37,8 +34,6 @@ services:
       - DJANGO_SETTINGS_MODULE=losuj_to.settings
 
     command: celery -A events.celery_app:email_queue worker -l info
-    volumes:
-      - ./losuj_to/:/losuj_to/
     depends_on:
       - app
       - redis
@@ -52,10 +47,7 @@ services:
       - DEBUG=1
       - DJANGO_SETTINGS_MODULE=losuj_to.settings
 
-    #command: celery -A events.celery_app:email_queue worker -l info
     command: celery -A events.celery_app:email_queue beat -l info
-    volumes:
-      - ./losuj_to/:/losuj_to/
     depends_on:
       - app
       - redis
@@ -70,27 +62,6 @@ services:
     networks:
       - network_no_internet
       - network_internet
-
-
-
-  flower:
-    container_name: flower
-    build: .
-    command: celery -A events.celery_app:email_queue flower --port=5555
-    ports:
-      - 5556:5555
-
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELETY_RESULT_BACKEND=redis://redis:6379/0
-
-    networks:
-     - network_no_internet
-
-    depends_on:
-      - app
-      - redis
-      - celery
 
 networks:
   network_no_internet:
