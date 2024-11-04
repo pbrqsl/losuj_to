@@ -105,6 +105,13 @@
                     </br>
 
                 {% endfor %}
+                {% if event_data.confirmed %}
+                    <p><i>In order to add or edit pareticipants you should deactivate event first.</i></p>
+
+                {% else %}
+
+                    <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>edit paticipants</a></p>
+                {% endif %}
 
         </div>
         <div class="item-event">
