@@ -112,29 +112,20 @@
                 {% if excludes %}
                     {% for participant, excluded_list in excludes.items %}
                         {% for excluded in excluded_list %}
-                            <p>{{participant}} cannot draw {{excluded}}
+                            <p>{{participant}} cannot draw {{excluded}}</p>
                         {% endfor %}
                     {% endfor %}
                 {% else %}
-                <p>Currently there is no excludes set for this event.</p>
+                    <p>Currently there is no excludes set for this event.</p>
                 {% endif %}
-
-
-
-
-            <div>
-                <a class="add-a-wish" href='{% url "event_wish_create" pk=event_data.event_id %}'>
-                    <span>add a wish</span>
-                </a>
-            </div>
 
         </div>
         <div class="item-event drawn-name">
-            <h5>Drawn name</h5>
+            <h5>Draws</h5>
             {% if not event_data.can_collect %}
 
 
-            <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
+                <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
 
             {% else %}
                 {% if not event_data.draw_collected %}
@@ -165,6 +156,11 @@
 
                 {% endif %}
             {% endif %}
+            {% if draws %}
+                    {% for draw in draws %}
+                        {{draw.participant}} - {{draw.drawn_participant}}
+                
+                {% endif %}
 
         </div>
     </div>
