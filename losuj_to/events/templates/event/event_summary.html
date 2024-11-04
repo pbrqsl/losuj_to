@@ -99,147 +99,96 @@
 
 
 <script>
+    function getCSRFTToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim()
+                if (cookie.substring(0, "csrftoken".length + 1) === ("csrftoken" + "=")) {
 
-    function addRow() {
-        const lastRow = document.querySelector('.form-row:last-child');
-        const newRow = lastRow.cloneNode(true);
-
-        const inputs = newRow.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.value = '';
-            input.classList.remove('invalid-email');
-        });
-
-        document.getElementById('form').appendChild(newRow);
-
-        // Hide remove button in the first row
-        document.querySelectorAll('.form-row .add-row-btn').forEach(btn => {
-        btn.style.display = 'none';
-        });
-
-        // Show remove button in the newly added row
-        newRow.querySelector('.remove-row-btn').style.display = 'inline';
-        newRow.querySelector('.add-row-btn').style.display = 'inline';
-
-        newRow.querySelector('input').focus();
-        updateSubmitButtonState();
-    }
-
-    function removeRow(button) {
-        const row = button.parentNode;
-        const formContainer = document.getElementById('form');
-        let rows_range = JSON.parse(document.getElementById('rows_range').textContent)
-        console.log(formContainer);
-        console.log(formContainer.childElementCount);
-        console.log(rows_range)
-
-        if (formContainer.childElementCount > rows_range + 1 ) {
-            //const wasLastRow = row === formContainer.lastElementChild;
-            formContainer.removeChild(row);
-            updateSubmitButtonState();
-            const lastRow = formContainer.lastElementChild;
-            lastRow.querySelector('.add-row-btn').style.display = 'inline';
-            console.log(formContainer.childElementCount);
-            console.log(formContainer.lastElementChild);
-        }
-    }
-
-    function checkTab(event) {
-        if (event.key === 'Tab' && !event.shiftKey) {
-            const focusedInput = event.target;
-            const formRows = document.querySelectorAll('.form-row');
-            const lastRow = formRows[formRows.length - 1];
-            const lastRowInputs = lastRow.querySelectorAll('input');
-
-            if (focusedInput === lastRowInputs[lastRowInputs.length - 1]) {
-                addRow();
-                event.preventDefault();
+                    cookieValue = decodeURIComponent(cookie.substring("csrftoken".length + 1));
+                    break;
+                    }
+                }
             }
-        }
+        return cookieValue;
+       }
+    document.addEventListener('DOMContentLoaded', (event) => {
+
+        const collectDrawButton = document.getElementById('collect_draw');
+        const collectUnhideNameLink = document.getElementById('unhide_name');
+        const collectDrawnName = document.getElementById('drawn_name');
+        const deleteWishButton = document.getElementsByClassName('wish-delete')
+
+
+        if (collectDrawButton) {
+            collectDrawButton.addEventListener('click', function() {
+                const drawId = this.getAttribute('data-draw-id')
+                fetch(`/api/draw_collected/${drawId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+                    body: JSON.stringify ({
+                        collected: true,
+                        }),
+                    })
+                .then(response => {
+                        if (response.ok) {
+                            alert('Gift collection status updated successfully!')
+                            location.reload()
+                        } else {
+                            alert('Thre was an issue with yor request.')
+                        }
+                    });
+                })
+            };
+
+        if (deleteWishButton) {
+            for (var i = 0 ; i < deleteWishButton.length; i++) {
+                let wish_id = deleteWishButton[i].id;
+                let event_id = "{{event_data.event_id}}"
+                const endpoint = `/events/event_wish_delete/${wish_id}/${event_id}`
+                deleteWishButton[i].addEventListener('click' ,() => {
+                    "event_wish_delete/<int:pk>/<int:event_id>"
+                    fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+
+                    }).then(response => {
+                        if (response.status === 200) {
+                            window.location.reload();
+
+                        }
+                    })
+
+                 } , false ) ;
+}
+            };
+
+
+        if (collectUnhideNameLink) {
+            collectUnhideNameLink.addEventListener('click', function() {
+                if (collectDrawnName) {
+                    if (collectDrawnName.style.display === 'none') {
+                            collectDrawnName.style.display = 'block';
+                        } else {
+                            collectDrawnName.style.display = 'none';
+                        }
+                }
+            });
+        };
     }
+        )
 
-    function validateEmail(event) {
-        const emailInput = event.target;
-        const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
 
-        if (!isValidEmail) {
-            emailInput.classList.add('invalid-email');
-        } else {
-            const allEmailInputs = document.querySelectorAll('input[name^="email"]');
-            const isDuplicate = Array.from(allEmailInputs).some(input => input !== emailInput && input.value.trim() === emailInput.value.trim());
 
-            if (isDuplicate) {
-                console.log('duplicate')
-                emailInput.classList.add('invalid-email');
-                disableSubmitButton();
-
-                console.log(document.getElementById('submit-btn'))
-            } else {
-                emailInput.classList.remove('invalid-email');
-                updateSubmitButtonState();
-            }
-        }
-
-        updateSubmitButtonState();
-    }
-
-    function disableSubmitButton() {
-        const submitBtn = document.getElementById('submit-btn');
-        submitBtn.classList.remove('active');
-        submitBtn.setAttribute('disabled', 'disabled');
-    }
-
-    function updateSubmitButtonState() {
-        const submitBtn = document.getElementById('submit-btn');
-        const emailInputs = document.querySelectorAll('input[name^="email"]');
-        //const areAllEmailsValid = Array.from(emailInputs).every(input => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim()));
-        const areAllEmailsValid = Array.from(emailInputs).every(input => {
-            const isValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
-            const isNotDuplicate = !Array.from(emailInputs).some(otherInput => otherInput !== input && otherInput.value.trim() === input.value.trim());
-            const isNotInvalid = !input.classList.contains('invalid-email');
-
-            return isValidFormat && isNotDuplicate && isNotInvalid;
-        });
-
-        if (areAllEmailsValid) {
-            submitBtn.classList.add('active');
-            submitBtn.removeAttribute('disabled');
-        } else {
-            submitBtn.classList.remove('active');
-            submitBtn.setAttribute('disabled', 'disabled');
-        }
-    }
-
-    function submitForm() {
-        const formRows = document.querySelectorAll('.form-row');
-        const formData = [];
-
-        formRows.forEach(row => {
-            const emailInput = row.querySelector('input[name^="email"]');
-            const nameInput = row.querySelector('input[name^="name"]');
-
-            // Skip empty rows
-            if (emailInput.value.trim() !== '') {
-                formData.push(`${emailInput.value},${nameInput.value}`);
-            }
-        });
-
-        // Join the formData array into a single string with line breaks
-        const formattedData = formData.join('\n');
-
-        // Create a hidden textarea element and append it to the form
-        const textarea = document.createElement('textarea');
-        textarea.name = 'participants';
-        textarea.value = formattedData;
-        textarea.style.display = 'none';
-
-        const form = document.querySelector('form');
-        form.appendChild(textarea);
-
-        // Submit the form
-        form.submit();
-    }
-</script>
+ </script>
 
 
 {% endblock %}
