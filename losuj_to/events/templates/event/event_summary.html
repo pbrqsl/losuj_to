@@ -83,45 +83,15 @@
         </div>
         <div class="item-event drawn-name">
             <h5>Draws</h5>
-            {% if not event_data.can_collect %}
-
-
-                <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
-
-            {% else %}
-                {% if not event_data.draw_collected %}
-                You can now draw your gift taker!
-                <!-- <button id="collect_draw" data-draw-id="{{ event_data.draw_id }}">Draw!</button> -->
-                <a href="#" id="collect_draw" class="collect-draw" data-draw-id="{{ event_data.draw_id }}">Draw!</a>
-                {% else %}
-                <a class="unhide" href="#" id="unhide_name">unhide</a>
-
-
-                <div style="display: none" id="drawn_name">
-                <h1 >{{ event_data.drawn_participant }}</h1>
-                {% if event_data.drawn_participant_wishes %}
-                {% for wish in event_data.drawn_participant_wishes %}
-
-                    {{wish.description}}
-                {% endfor %}
-
-                {% else %}
-                <p>Currently your participant does not have any wishes.</p>
-
-                <a class="send-a-reminder" href='{% url "send_reminder_wishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>
-                    <span>Send a reminder.</span>
-                </a>
-                {% endif %}
-                </div>
-
-
-                {% endif %}
-            {% endif %}
+            
+            <div style="display: none" id="drawn_name">
             {% if draws %}
-                    {% for draw in draws %}
-                        <p>{{draw.participant}} - {{draw.drawn_participant}} - {{draw.collected}}</p>
-                    {% endfor %}
-                {% endif %}
+                {% for draw in draws %}
+                    <p>{{draw.participant}} - {{draw.drawn_participant}} - {{draw.collected}}</p>
+                {% endfor %}
+            {% endif %}
+            </div>
+            <a class="unhide" href="#" id="unhide_name">unhide</a>
 
         </div>
     </div>
