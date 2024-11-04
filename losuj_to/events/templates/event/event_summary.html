@@ -108,17 +108,18 @@
 
         </div>
         <div class="item-event">
-            <h5>Your wishes</h5>
-            {% if event_data.participant_wishes %}
-                {% for wish in event_data.participant_wishes %}
-                <div class="wish-item">
-                 <span>{{wish.description}}</span>
-                    <a href="#" class="wish-delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">
-                        <span class="material-icons md-18 close-icon">close</span>
-                    </a>
-                {% csrf_token %}
-                </div>
-                {% endfor %}
+            <p>Excludes:</p>
+                {% if excludes %}
+
+                    {% for participant, excluded_list in excludes.items %}
+                        {% for excluded in excluded_list %}
+                            <p>{{participant}} cannot draw {{excluded}}
+                        {% endfor %}
+
+                    {% endfor %}
+                {% else %}
+                <p>Currently there is no excludes set for this event.</p>
+                {% endif %}
 
 
 
