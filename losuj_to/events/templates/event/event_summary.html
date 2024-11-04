@@ -1,62 +1,6 @@
 {% extends 'website/base.html' %}
 
 {% block content %}
-  <h2>Event Summary:</h2>
-  <p>Event Name: {{ event_data.event_name }}</p>
-  <p>Event date: {{ event_data.event_date }}</p>
-  {% if event_data.draw_date %}
-  <p>Draw date: {{ event_data.draw_date }}</p>
-  {% endif %}
-  <p>Confirmed: {{ event_data.confirmed }}</p>
-
-  {% if event_data.event_location != '' %}
-  <p>Event Location: {{ event_data.event_location }}</p>
-
-  {% endif %}
-  <p><a href='{% url "event_update" pk=event_data.event_id %}'>edit event details</a></p>
-  <p>Participants:</p>
-  {% for participant in participants %}
-  {{participant.1}}
-  {{participant.3}}
-    {% if participant.3 %}
-    draw taken
-    {% else %}
-        {% if event_data.confirmed %}
-        <a href='{% url "send_reminder" pk=event_data.event_id participant_id=participant.2 %}'>Send a reminder.</a>
-        draw not taken.
-        {% endif %}
-
-
-    {% endif %}
-    </br>
-
-  {% endfor %}
-
-  {% if event_data.confirmed %}
-  <p><i>In order to add or edit pareticipants you should deactivate event first.</i></p>
-
-  {% else %}
-
-  <p><a href='{% url "event_participants_update" pk=event_data.event_id %}'>edit paticipants</a></p>
-  {% endif %}
-
-
-
-  <p>Excludes:</p>
-  {% if excludes %}
-
-    {% for participant, excluded_list in excludes.items %}
-        {% for excluded in excluded_list %}
-            {{participant}} cannot draw {{excluded}} <br>
-        {% endfor %}
-
-    {% endfor %}
-{% else %}
-<p>Currently there is no excludes set for this event.</p>
-{% endif %}
-
-
-
 
 <div class="container-event">
     <div class="row-event">
