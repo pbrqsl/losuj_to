@@ -66,6 +66,7 @@
             {% if event_data.draw_date %}
             <p>Draw date: {{ event_data.draw_date }}</p>
             {% endif %}
+            <p><a href='{% url "event_update" pk=event_data.event_id %}'>edit event details</a></p>
             {% if event_data.confirmed %}
                     
                     <p><a href='{% url "event_deactivate" pk=event_data.event_id %}'>deactivate event</a> (all draw results will be cancelled)</p>
