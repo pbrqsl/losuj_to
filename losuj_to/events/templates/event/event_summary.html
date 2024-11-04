@@ -64,86 +64,121 @@
     <p><a href='{% url "event_excludes_update" pk=event_data.event_id %}'>edit or add excludes</a></p>
     <p><a href='{% url "event_toggle_active" pk=event_data.event_id %}'>activate the event</a> (any updates will not be possible)</p>
 {% endif %}
-<!--
-<style>
-    .container {
-        display: grid;
-        width: 70%;
-        display: none;
-    }
-    .container-unhidden {
-        display: grid;
-        width: 70%;
-    }
 
-    .left-column {
-        grid-column: 1;
-        grid-row: 2;
-        width: 100%;
-        align-items: center;
+<div class="container-event">
+    <div class="row-event">
+        <div class="item-event">
+            <h2>{{ event_data.event_name }}</h2>
+            <p>Event date:  {{ event_data.event_date }}</p>
+            {% if event_data.draw_date %}
+            <p>Draw date: {{ event_data.draw_date }}</p>
+            {% endif %}
+            
+        </div>
+        <div class="item-event">
+            <h2>other details</h2>
+            
+            <p>Confirmed: {{ event_data.confirmed }}</p>
+            {% if event_data.event_location != '' %}
+            <p>Event Location: {{ event_data.event_location }}</p>
 
-        padding-right: 40px;
-    }
+            {% endif %}
+        </div>
+    </div>
+    <div class="row-event">
+        <div class="item-event">
+            <h5>Event participants</h5>
+            <p>Participants:</p>
+                {% for participant in participants %}
+                {{participant.1}}
+                {{participant.3}}
+                    {% if participant.3 %}
+                    draw taken
+                    {% else %}
+                        {% if event_data.confirmed %}
+                        <a href='{% url "send_reminder" pk=event_data.event_id participant_id=participant.2 %}'>Send a reminder.</a>
+                        draw not taken.
+                        {% endif %}
 
-    .right-column {
-        grid-column: 2;
-        grid-row: 2;
-        align-items: center;
 
-        padding-left: 40px;
-        padding-right: 100px;
+                    {% endif %}
+                    </br>
 
-    }
+                {% endfor %}
 
-    .drop-container {
-        width: 500px;
-        height: 50px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-        position: relative; /* Required for positioning the label */
-    }
+        </div>
+        <div class="item-event">
+            <h5>Your wishes</h5>
+            {% if event_data.participant_wishes %}
+                {% for wish in event_data.participant_wishes %}
+                <div class="wish-item">
+                 <span>{{wish.description}}</span>
+                    <a href="#" class="wish-delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">
+                        <span class="material-icons md-18 close-icon">close</span>
+                    </a>
+                {% csrf_token %}
+                </div>
+                {% endfor %}
 
-    .drop-container::before {
-        content: attr(data-label); /* Use the data-label attribute as content for the pseudo-element */
-        position: absolute;
-        top: 50%;
-        left: 80%;
-        transform: translate(-50%, -50%);
-        color: #ccc;
-        pointer-events: none; /* Allow drag-and-drop on the container, not the label */
-        font-family: Arial, Helvetica, sans-serif ;
-    }
 
-    .pool-container {
-        width: 100%;
-        height: 80px;
-        border: 2px dashed #ccc;
-        padding: 10px;
-        margin: 10px;
-        display: inline-block;
-        vertical-align: top; /* Align containers at the top */
-    }
 
-    .draggable {
-        cursor: move;
-        display: inline-block;
-        margin: 5px;
-        padding: 5px;
-        border: 1px solid #000;
-        font-family: Arial, Helvetica, sans-serif;
-        border-radius: 10px;
-        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
-    }
 
-    .delete-button {
-        cursor: pointer;
-        color: red;
-        margin-left: 5px;
-    }
-</style> -->
+            <div>
+                <a class="add-a-wish" href='{% url "event_wish_create" pk=event_data.event_id %}'>
+                    <span>add a wish</span>
+                </a>
+            </div>
+
+            {% else %}
+            <div>
+                <span>Currently your wishlist is empty </span>
+                <a class="add-a-wish" href='{% url "event_wish_create" pk=event_data.event_id %}'>
+                    <span>add your first wish!</span>
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+        <div class="item-event drawn-name">
+            <h5>Drawn name</h5>
+            {% if not event_data.can_collect %}
+
+
+            <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
+
+            {% else %}
+                {% if not event_data.draw_collected %}
+                You can now draw your gift taker!
+                <!-- <button id="collect_draw" data-draw-id="{{ event_data.draw_id }}">Draw!</button> -->
+                <a href="#" id="collect_draw" class="collect-draw" data-draw-id="{{ event_data.draw_id }}">Draw!</a>
+                {% else %}
+                <a class="unhide" href="#" id="unhide_name">unhide</a>
+
+
+                <div style="display: none" id="drawn_name">
+                <h1 >{{ event_data.drawn_participant }}</h1>
+                {% if event_data.drawn_participant_wishes %}
+                {% for wish in event_data.drawn_participant_wishes %}
+
+                    {{wish.description}}
+                {% endfor %}
+
+                {% else %}
+                <p>Currently your participant does not have any wishes.</p>
+
+                <a class="send-a-reminder" href='{% url "send_reminder_wishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>
+                    <span>Send a reminder.</span>
+                </a>
+                {% endif %}
+                </div>
+
+
+                {% endif %}
+            {% endif %}
+
+        </div>
+    </div>
+</div>
 
 
 
