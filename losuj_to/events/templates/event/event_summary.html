@@ -110,12 +110,10 @@
         <div class="item-event">
             <p>Excludes:</p>
                 {% if excludes %}
-
                     {% for participant, excluded_list in excludes.items %}
                         {% for excluded in excluded_list %}
                             <p>{{participant}} cannot draw {{excluded}}
                         {% endfor %}
-
                     {% endfor %}
                 {% else %}
                 <p>Currently there is no excludes set for this event.</p>
@@ -129,15 +127,6 @@
                     <span>add a wish</span>
                 </a>
             </div>
-
-            {% else %}
-            <div>
-                <span>Currently your wishlist is empty </span>
-                <a class="add-a-wish" href='{% url "event_wish_create" pk=event_data.event_id %}'>
-                    <span>add your first wish!</span>
-                </a>
-            </div>
-            {% endif %}
 
         </div>
         <div class="item-event drawn-name">
