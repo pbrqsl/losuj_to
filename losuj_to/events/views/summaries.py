@@ -62,6 +62,7 @@ class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
                 "event_data": event_data,
                 "participants": participants,
                 "excludes": excludes,
+                "draws": draws,
             },
         )
 
