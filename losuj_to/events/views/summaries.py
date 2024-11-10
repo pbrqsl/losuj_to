@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from datetime import datetime
 from itertools import chain
 from operator import attrgetter
@@ -64,6 +65,7 @@ class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
                 "event_data": event_data,
                 "participants": participants,
                 "excludes": excludes,
+                "draws": draws,
             },
         )
 
@@ -118,6 +120,10 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             event=event, participant=draw.drawn_participant
         )
 
+        event_validate = get_and_validate_event(event)
+        participants = event_validate["participants"]
+        print(participants)
+        
         event_data = {
             "event_name": event.event_name,
             "event_location": "",
@@ -134,6 +140,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "draw_id": draw.id,
             "participant_wishes": participant_wishes,
             "drawn_participant_wishes": drawn_paricipant_wishes,
+            "participants": participants,
         }
 
         return render(request, self.template_name, context={"event_data": event_data})
@@ -155,25 +162,93 @@ class EventListView(LoginRequiredMixin, TemplateView):
         ).distinct()
 
         drawing_statuses = {}
-
         participated_events = Event.objects.filter(pk__in=participating_events_list)
+
+        local_timezone = pytz.timezone("Europe/Berlin")
+        datetime_now = datetime.now()
+        datetime_now = datetime_now.astimezone(local_timezone)
+        datetime_now = datetime_now.replace(tzinfo=None)
+
+        events_dict = {}
+        for event in owned_events:
+            event_class = "event-item"
+            events_dict[event.id] = {
+                "event_name": event.event_name,
+                "owner": event.owner.email,
+                "owned": True,
+                "event_date": event.event_date,
+                "event_draw_date": event.draw_date,
+                "participated": False,
+                "draw_collected": False,
+                "event_confirmed": event.confirmed,
+            }
+            drawing_date = event.draw_date
+            if isinstance(drawing_date, datetime):
+                drawing_date = drawing_date.replace(tzinfo=None)
+            else:
+                drawing_date = datetime_now
+
+            events_dict[event.id]["show_draw_date"] = (
+                True if drawing_date > datetime_now else False
+            )
+            date_now = datetime.now().date()
+            days_till_event = event.event_date - date_now
+
+            if days_till_event < timedelta(days=-7):
+                event_class += " older-than-7"
+            events_dict[event.id]["event_class"] = event_class
+
         for event in participated_events:
+            event_class = "event-item"
             drawing_status = Draw.objects.get(
                 event=event, participant__user=request.user
             ).collected
-            drawing_statuses[event.id] = drawing_status
+            drawing_statuses[str(event.id)] = drawing_status
 
-        # print(participated_events_list)
-        all_events = list(chain(participated_events, owned_events))
-        all_events = list(set(all_events))
-        all_events = sorted(all_events, key=attrgetter("event_date"))
+            if event.id in events_dict:
+                events_dict[event.id]["participated"] = True
+                events_dict[event.id]["draw_collected"] = drawing_status
+            else:
+                events_dict[event.id] = {
+                    "event_name": event.event_name,
+                    "owner": event.owner.email,
+                    "owned": False,
+                    "event_date": event.event_date,
+                    "event_draw_date": event.draw_date,
+                    "participated": True,
+                    "draw_collected": drawing_status,
+                    "event_confirmed": event.confirmed,
+                }
+            drawing_date = event.draw_date
+            if isinstance(drawing_date, datetime):
+                drawing_date = drawing_date.replace(tzinfo=None)
+            else:
+                drawing_date = datetime_now
+
+            events_dict[event.id]["show_draw_date"] = (
+                True if drawing_date > datetime_now else False
+            )
+            date_now = datetime.now().date()
+            days_till_event = event.event_date - date_now
+            if days_till_event < timedelta(days=-7):
+                event_class += " older-than-7"
+            events_dict[event.id]["event_class"] = event_class
+
+        events_list = []
+        for key in events_dict:
+            events_dict[key]["id"] = key
+            events_list.append(events_dict[key])
+
+        events_list_by_date = sorted(events_list, key=lambda d: d["event_date"])
+
+        local_timezone = pytz.timezone("Europe/Berlin")
+
         return render(
             request,
             self.template_name,
             context={
-                "owned_events": owned_events,
-                "participated_events": participated_events,
-                "all_events": all_events,
-                "drawing_statuses": drawing_statuses,
+
+                "events_list": events_list_by_date,
+                "datetime_now": datetime_now,
             },
         )

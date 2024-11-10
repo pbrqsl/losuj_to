@@ -1,0 +1,96 @@
+section {
+    /* height: 100vh; */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+.main-image {
+
+    border-radius: 30px;
+    padding: 0px;
+    width: 100%;
+    max-width: 450px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+  }
+
+  .main-page-div {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.left-pane-div {
+
+}
+
+.right-pane-div {
+    padding: 10px;
+
+    left: 10px;
+
+}
+
+.right-pane-div-upper {
+    position: relative;
+    font-size: large;
+
+}
+
+.right-pane-div-lower {
+    margin-top: 10px;
+
+}
+
+.container-about {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Individual sections with staggered effect */
+.section-about {
+    flex: 1;
+    padding: 15px;
+    /* Increased spacing to create a floating effect */
+    margin-right: 20px;
+    margin-bottom: 40px;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    position: relative;
+}
+
+.section-image {
+    margin-top: 0; /* Image section aligns with top */
+    border: none; /* Remove border */
+    box-shadow: none; /* Remove shadow */
+    background-color: transparent;
+}
+
+.section-welcome {
+    margin-top: 60px; /* Slightly lower than image section */
+}
+
+.section-mystery {
+    margin-top: 120px;
+    margin-bottom: 80px; /* Additional bottom margin to ensure it extends lower than the welcome section */
+}
+
+/* Responsive stacking */
+@media (max-width: 768px) {
+    .main-page-div {
+        flex-direction: column; /* Stacks sections vertically on mobile */
+    }
+    .section-about {
+        margin-top: 20px; /* Add space between sections in mobile view */
+    }
+}
+
+
+
+/* .section-image, .section-welcome, .section-mystery {
+    margin-top: 0;
+} */

@@ -1,0 +1,166 @@
+{% extends 'website/base.html' %}
+
+{% block content %}
+  <h2>{{ event_data.event_name }}</h2>
+
+  <h3>Hello {{ event_data.participant }} </h3>
+
+  <p>Event date: {{ event_data.event_date }}</p>
+
+
+  {% if not event_data.can_collect %}
+
+
+  <p>Drawing is taking place at {{ event_data.draw_date }}!</p>
+
+  {% else %}
+    {% if not event_data.draw_collected %}
+        You can now draw your gift taker!
+        <button id="collect_draw" data-draw-id="{{ event_data.draw_id }}">Draw!</button>
+    {% else %}
+        Click <a href="#" id="unhide_name">here</a> to unhide your drawn name.
+
+
+        <div style="display: none" id="drawn_name">
+        <h1 >{{ event_data.drawn_participant }}</h1>
+        {% if event_data.drawn_participant_wishes %}
+        {% for wish in event_data.drawn_participant_wishes %}
+
+            {{wish.description}} <br>
+        {% endfor %}
+
+        {% else %}
+        <h3>Currently your participant does not have any wishes.</h3>
+        <h2>send a reminder?</h2>
+        <a href='{% url "send_reminder_wishes" pk=event_data.event_id participant_id=event_data.drawn_participant_id %}'>Send a reminder.</a>
+        {% endif %}
+        </div>
+    {% endif %}
+    <br><br>
+
+
+    {% if event_data.participant_wishes %}
+    <h3>your wishlist....</h3>
+        {% for wish in event_data.participant_wishes %}
+
+            {{wish.description}} |
+            <a href="#" class="wish_delete" id="{{wish.id}}" event_id="{{ event_data.event_id }}">delete</a>
+
+                {% csrf_token %}
+            <br>
+        {% endfor %}
+
+        {% else %}
+        <h3>Currently your wishlist is empty :(</h3>
+    {% endif %}
+
+
+
+
+    <a href='{% url "event_wish_create" pk=event_data.event_id %}'>add a wish</a>
+
+  {% if event_data.event_location != '' %}
+  <p>Event Location: {{ event_data.event_location }}</p>
+
+  {% endif %}
+  {% endif %}
+
+
+
+    </div>
+
+
+
+    <script>
+    function getCSRFTToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim()
+                if (cookie.substring(0, "csrftoken".length + 1) === ("csrftoken" + "=")) {
+
+                    cookieValue = decodeURIComponent(cookie.substring("csrftoken".length + 1));
+                    break;
+                    }
+                }
+            }
+        return cookieValue;
+       }
+    document.addEventListener('DOMContentLoaded', (event) => {
+
+        const collectDrawButton = document.getElementById('collect_draw');
+        const collectUnhideNameLink = document.getElementById('unhide_name');
+        const collectDrawnName = document.getElementById('drawn_name');
+        const deleteWishButton = document.getElementsByClassName('wish_delete')
+
+
+        if (collectDrawButton) {
+            collectDrawButton.addEventListener('click', function() {
+                const drawId = this.getAttribute('data-draw-id')
+                fetch(`/api/draw_collected/${drawId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+                    body: JSON.stringify ({
+                        collected: true,
+                        }),
+                    })
+                .then(response => {
+                        if (response.ok) {
+                            alert('Gift collection status updated successfully!')
+                            location.reload()
+                        } else {
+                            alert('Thre was an issue with yor request.')
+                        }
+                    });
+                })
+            };
+
+        if (deleteWishButton) {
+            for (var i = 0 ; i < deleteWishButton.length; i++) {
+                let wish_id = deleteWishButton[i].id;
+                let event_id = "{{event_data.event_id}}"
+                const endpoint = `/events/event_wish_delete/${wish_id}/${event_id}`
+                deleteWishButton[i].addEventListener('click' ,() => {
+                    "event_wish_delete/<int:pk>/<int:event_id>"
+                    fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFTToken(),
+                        },
+
+                    }).then(response => {
+                        if (response.status === 200) {
+                            window.location.reload();
+
+                        }
+                    })
+
+                 } , false ) ;
+}
+            };
+
+
+        if (collectUnhideNameLink) {
+            collectUnhideNameLink.addEventListener('click', function() {
+                if (collectDrawnName) {
+                    if (collectDrawnName.style.display === 'none') {
+                            collectDrawnName.style.display = 'block';
+                        } else {
+                            collectDrawnName.style.display = 'none';
+                        }
+                }
+            });
+        };
+    }
+        )
+
+
+
+ </script>
+
+{% endblock %}

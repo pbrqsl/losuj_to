@@ -83,20 +83,27 @@ a {
 }
 
 .manage-link {
-    background-color: #2196f3;
+    background-color: #ffffff;
     color: white;
     border: 1px solid #2196f3;
+    border-radius: 12px;
 }
 
 .manage-link a {
     color: black;
 }
 
+.guest-link a {
+    color: black;
+}
+
 .guest-link {
-    background-color: #ffa726;
+    background-color: #ffffff;
     margin-left: 10px;
     color: white;
     border: 1px solid #ffa726;
+    border-radius: 12px;
+
 }
 
 /* Hover Effects */
