@@ -26,8 +26,11 @@ jobs:
 
       - name: Buils and Push App Image
         env:
-          IMAGE_URI_APP: ${{ steps.ecr-login.outputs.registry }}/losuj_to-app:latest
+          IMAGE_URI_APP: ${{ steps.ecr-login.outputs.registry }}
+            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+            ECR_REPOSITORY: losuj_to-app
+            IMAGE_TAG: latest
         run: |
-          docker build -t "$IMAGE_URI_APP" -f Dockerfile .
-          docker push "$IMAGE_URI_APP"
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
