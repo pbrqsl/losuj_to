@@ -8,9 +8,12 @@ section {
 .main-image {
 
     border-radius: 30px;
-    padding: 10px;
+    padding: 0px;
     width: 100%;
     max-width: 450px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
   }
 
   .main-page-div {
