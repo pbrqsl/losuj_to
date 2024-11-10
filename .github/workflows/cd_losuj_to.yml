@@ -30,3 +30,4 @@ jobs:
         run: |
           docker build -t "$IMAGE_URI_APP" -f Dockerfile .
           docker push "$IMAGE_URI_APP"
+          
