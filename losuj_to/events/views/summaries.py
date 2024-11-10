@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta
+from datetime import datetime
+from itertools import chain
+from operator import attrgetter
 from typing import Any
 
 import pytz
@@ -120,7 +123,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
         event_validate = get_and_validate_event(event)
         participants = event_validate["participants"]
         print(participants)
-
+        
         event_data = {
             "event_name": event.event_name,
             "event_location": "",
@@ -239,10 +242,12 @@ class EventListView(LoginRequiredMixin, TemplateView):
         events_list_by_date = sorted(events_list, key=lambda d: d["event_date"])
 
         local_timezone = pytz.timezone("Europe/Berlin")
+
         return render(
             request,
             self.template_name,
             context={
+
                 "events_list": events_list_by_date,
                 "datetime_now": datetime_now,
             },

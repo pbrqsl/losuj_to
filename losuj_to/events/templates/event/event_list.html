@@ -8,6 +8,7 @@
 
 
   <h2>Event List</h2>
+
     <input type="checkbox" id="older-than-7-d" onchange="showOlderThan7()">
     Show older than 7 days<br>
   {%for event in events_list%}
@@ -15,11 +16,11 @@
 
 <div>
     <div class="{{event.event_class}}">
+
         <div class="event-header">
             <span class="event-name">{{event.event_name}}</span>
             <span>
                 Event date:
-
                 <span class="event-date">{{event.event_date}}</span>
                 {% if event.show_draw_date %}
                 <br>Draw date: <span class="event-date">{{event.event_draw_date}}</span>
@@ -38,6 +39,7 @@
                 {% else %}
                 <span class="event-status inactive">Inactive</span>
                 {% endif %}
+
 
 
 

@@ -42,3 +42,4 @@ flower
 celery
 redis
 django4-background-tasks
+

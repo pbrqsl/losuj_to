@@ -1,6 +1,7 @@
 {% extends 'website/base.html' %}
 
 {% block content %}
+
     
 <!-- </head> -->
 <!-- <body> -->
@@ -106,6 +107,7 @@
 </html> -->
 
 <script>
+
     function getCSRFTToken() {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
@@ -126,9 +128,8 @@
         const collectDrawButton = document.getElementById('collect_draw');
         const collectUnhideNameLink = document.getElementById('unhide_name');
         const collectDrawnName = document.getElementById('drawn_name');
-        const deleteWishButton = document.getElementsByClassName('wish-delete')
 
-
+        const deleteWishButton = document.getElementsByClassName('wish_delete')
         if (collectDrawButton) {
             collectDrawButton.addEventListener('click', function() {
                 const drawId = this.getAttribute('data-draw-id')
@@ -196,4 +197,5 @@
 
 
  </script>
+
 {% endblock %}
