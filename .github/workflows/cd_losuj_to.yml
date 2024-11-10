@@ -30,10 +30,3 @@ jobs:
         run: |
           docker build -t "$IMAGE_URI_APP" -f Dockerfile .
           docker push "$IMAGE_URI_APP"
-
-      - name: Buils and Push Celery Image
-        env:
-          IMAGE_URI_APP: ${{ steps.ecr-login.outputs.registry }}/losujto_celery_test:latest
-        run: |
-          docker build -t "$IMAGE_URI_APP" -f Dockerfile .
-          docker push "$IMAGE_URI_APP"
