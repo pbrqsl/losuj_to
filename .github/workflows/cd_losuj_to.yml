@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Repository Checkup
-        uses: actions/chekout@v2
+        uses: actions/checkout@v2
 
       - name: Configure AWS Credentials
         uses: aws-action/configure-aws-credentials@v1
@@ -30,4 +30,4 @@ jobs:
         run: |
           docker build -t "$IMAGE_URI_APP" -f Dockerfile .
           docker push "$IMAGE_URI_APP"
-          
+
