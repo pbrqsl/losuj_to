@@ -1,0 +1,39 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: ["main"]
+
+
+jobs:
+  build-and-push:
+    name: Build and push to ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository Checkup
+        uses: actions/chekout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-action/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Buils and Push App Image
+        env:
+          IMAGE_URI_APP: ${{ steps.ecr-login.outputs.registry }}/losuj_to-app:latest
+        run: |
+          docker build -t "$IMAGE_URI_APP" -f Dockerfile .
+          docker push "$IMAGE_URI_APP"
+
+      - name: Buils and Push Celery Image
+        env:
+          IMAGE_URI_APP: ${{ steps.ecr-login.outputs.registry }}/losujto_celery_test:latest
+        run: |
+          docker build -t "$IMAGE_URI_APP" -f Dockerfile .
+          docker push "$IMAGE_URI_APP"
