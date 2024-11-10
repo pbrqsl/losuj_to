@@ -15,7 +15,6 @@ services:
      - network_no_internet
      - network_internet
 
-
   db:
     image: 'postgres:16.2'
     env_file: 'losuj_to/losuj_to/.env'
