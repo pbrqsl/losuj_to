@@ -19,6 +19,9 @@ COPY requirements.txt .
 RUN \
  python3 -m pip install -r requirements.txt --no-cache-dir
 
+RUN \
+ apt-get update && apt-get install -y postgresql-client
+
 
 #COPY losuj_to/init_django.sh .
 

@@ -30,7 +30,8 @@ jobs:
       - name: Check Commit Type
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: "\\[[^]]+\\] .+$"
-          flags: 'gm'
-          error: 'Your first line has to contain a commit type like "[BUGFIX]".'
+        pattern: |
+          \[[A-Z]+\] .+
+        flags: "gm"
+        error: "Your first line has to contain a commit type like \"[BUGFIX]\"."
 
