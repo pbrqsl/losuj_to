@@ -92,6 +92,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "losuj_to.wsgi.application"
 
+CSRF_TRUSTED_ORIGINS = ["https://losujto.brqdev.com"]
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],
