@@ -38,7 +38,7 @@ def check_not_collected_draws():
     local_timezone = pytz.timezone("Europe/Berlin")
     datetime_now = datetime_now.astimezone(local_timezone)
     datetime_now = datetime_now.replace(tzinfo=None)
-
+    logger.info("ello")
     event_reminder_days = [1, 2, 4, 7, 14, 20]
 
     for draw in draws_no_collected:
@@ -101,7 +101,7 @@ def get_task_status(task_id):
 email_queue.conf.beat_schedule = {
     "check_not_collected_every_10_minutes": {
         "task": "events.celery_app.check_not_collected_draws",
-        "schedule": 3600.0,
+        "schedule": 51.0,
     },
     "time_to_event_1w": {
         "task": "events.celery_app.time_to_event_1w",

@@ -1,34 +1,175 @@
 {% extends 'website/base.html' %}
 
 {% block content %}
-    {% load socialaccount %}
-    {% if not user.is_authenticated %}
-    <form method="POST">
-        {% csrf_token %}
-        <fieldset>
-            {{ form.as_p }}
-            <input type="hidden" name="next" value="{{ request.GET.next }}" />
+<style>
+    /* Reset and base styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+    }
 
-        </fieldset>
-        <button type="submit">Sign_in</button>
-    </form>
+    .main-container {
+      display: flex;
+      justify-content: center;
+      align-items: top;
+      height: 80vh;
 
-    <p>
-        <a href="{% url 'password_reset' %}" class="btn btn-link">Forgot your password?</a> |
-        <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
-    </p>
+      padding: 10px;
+    }
 
-        <h2>- OR -</h2>
-        <a href='{% provider_login_url "google" %}?next=/'>sing in with google
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .fieldset {
+        text-align: left;
+    }
 
+    .login-container h1 {
+      font-size: 1.8rem;
+      color: #333333;
+      margin-bottom: 1rem;
+    }
 
-        </a>
+    .login-container p {
+      font-size: 1rem;
+      color: #666666;
+      margin-bottom: 2rem;
+    }
 
-    {% else %}
-        <p>You are signed in as {{ user.email }}</p>
-        <p><a href="{% url 'logout' %}">logout</a></p>
-    {% endif %}
-    {% for error in form.non_field_errors %}
-        {{error}}
-    {% endfor %}
+    .google-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #4285F4;
+      color: #ffffff;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .google-login:hover {
+      background-color: #357ae8;
+    }
+
+    .google-login img {
+      height: 20px;
+      width: 20px;
+      margin-right: 8px;
+    }
+
+    .divider {
+      position: relative;
+      margin: 2rem 0;
+      text-align: center;
+      color: #aaaaaa;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background-color: #eeeeee;
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+    form {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    label {
+        white-space: nowrap;
+        text-align: right;
+        margin-right: 10px;
+        font-size: 1rem;
+        color: #666;
+    }
+
+    input {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+  </style>
+  <div class="main-container">
+    <div class="login-container">
+        {% load socialaccount %}
+        {% if not user.is_authenticated %}
+        <h1>Welcome to Losuj_to!</h1>
+        <p>Please log in to continue</p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="fieldset">
+                <fieldset>
+
+                    {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                          <div class="error-message">
+                            {{ field.errors }}
+                          </div>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+
+                    <input type="hidden" name="next" value="{{ request.GET.next }}" />
+
+                </fieldset>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign_in</button>
+        </form>
+
+        <p>
+            <a href="{% url 'password_reset' %}" class="btn btn-link">Forgot your password?</a> |
+            <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+        </p>
+
+        <div class="divider">or</div>
+            <a href='{% provider_login_url "google" %}?next=/' class="google-login">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                Sign in with Google
+
+            </a>
+
+        {% else %}
+            <p>You are signed in as {{ user.email }}</p>
+            <p><a href="{% url 'logout' %}">logout</a></p>
+        {% endif %}
+        {% for error in form.non_field_errors %}
+            {{error}}
+        {% endfor %}
+    </div>
+</div>
+
 {% endblock %}
