@@ -3,6 +3,7 @@
 __pycache__/
 losuj_to/sent_emails/
 losuj_to/celerybeat-schedule
+losuj_to/staticfiles/
 *.png
 *.jpg
 .venv/
