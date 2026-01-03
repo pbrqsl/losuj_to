@@ -118,7 +118,7 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
         event_data["event_name"] = event.event_name
         event_data["event_location"] = ""
         event_data["event_id"] = event.id
-        participants_from_db = Participant.objects.filter(event=event)
+        participants_from_db = Participant.objects.filter(event=event).select_related("user")
 
         participants = []
         for participant in participants_from_db:
