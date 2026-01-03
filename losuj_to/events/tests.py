@@ -51,7 +51,6 @@ class ParticipantUpdateViewQueryTest(TestCase):
         # Log in as the owner
         self.client = Client()
         self.client.login(email="owner@test.com", password="testpass123")
-        #print(f">>>>client:{self.client.__dict__}")
 
     def test_participant_update_view_get_query_count(self):
         with CaptureQueriesContext(connection) as context:
@@ -60,7 +59,7 @@ class ParticipantUpdateViewQueryTest(TestCase):
         print(f"\n📊 Query count: {len(context)}")
         for i, query in enumerate(context, 1):
             print(f"Query {i}: {query['sql'][:100]}...")
-            #print(f"Query {i}: {query['sql']}...")
+            
 
         # Ensure we have at least the basic queries (event + participants)
         self.assertGreaterEqual(len(context), 2,
@@ -132,17 +131,11 @@ class ParticipantUpdateViewQueryTest(TestCase):
         #response = self.client.get(f'/events/event_update_participants/{self.event.id}')
         #participants = response.context['participants']
         participants = Participant.objects.filter(event_id=self.event.id)
-        print(participants)
         for participant in participants:
             email, name = participant.user.email, participant.name
             self.assertEqual(name, email)
-            print(participant.name)
-            print(participant.user.email)
+            
         
-
-    
-
-
 if __name__ == '__main__':
     import unittest
     unittest.main()

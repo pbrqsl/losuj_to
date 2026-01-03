@@ -285,7 +285,7 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
         participants = []
         excludes = {}
 
-        participants_queryset = Participant.objects.filter(event_id=event_id)
+        participants_queryset = Participant.objects.filter(event_id=event_id).select_related("user")
         for participant_item in participants_queryset:
             participants.append([participant_item.user.email, participant_item.name])
 
