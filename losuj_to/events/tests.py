@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.test.utils import CaptureQueriesContext
 from django.db import connection
-from events.models import Event, Participant
+from events.models import Event, Participant, Draw
 from datetime import date
 import requests
 
@@ -56,7 +56,7 @@ class ParticipantUpdateViewQueryTest(TestCase):
         with CaptureQueriesContext(connection) as context:
             response = self.client.get(f'/events/event_update_participants/{self.event.id}')
 
-        print(f"\n📊 Query count: {len(context)}")
+        print(f"\n Query count: {len(context)}")
         for i, query in enumerate(context, 1):
             print(f"Query {i}: {query['sql'][:100]}...")
             
@@ -134,8 +134,77 @@ class ParticipantUpdateViewQueryTest(TestCase):
         for participant in participants:
             email, name = participant.user.email, participant.name
             self.assertEqual(name, email)
-            
+    
+class EventViewQueryTest(TestCase):
+
+    def setUp(self):
         
+        self.owner = User.objects.create_user(
+            email="owner@test.com",
+            password="testpass123"
+        )
+
+        
+        self.event = Event.objects.create(
+            event_name="Test Event",
+            event_date=date.today(),
+            owner=self.owner,
+            price_currency="PLN",
+            active=True,
+            confirmed=False,
+            draw_date=None,
+        )
+
+        
+        self.num_participants = 5
+        self.participants_data = []
+
+        for i in range(self.num_participants):
+            user = User.objects.create_user(
+                email=f"participant{i}@test.com",
+                password="testpass123"
+            )
+            participant = Participant.objects.create(
+                user=user,
+                event=self.event,
+                name=f"Participant {i}",
+            )
+            self.participants_data.append({
+                "email": user.email,
+                "name": participant.name,
+            })
+
+        # Log in as the owner
+        self.client = Client()
+        self.client.login(email="owner@test.com", password="testpass123")  
+        
+        
+        print(self.event)
+        draws = Draw.objects.all()
+        print(f"draws_queryset:{draws}")
+        
+    def test_event_list_view_status(self):
+     
+        response = self.client.get(f'/events/event_list/')
+
+        self.assertEqual(response.status_code, 200)
+    
+    def test_if_event_list_in_context(self):
+     
+        response = self.client.get(f'/events/event_list/')
+        
+        self.assertIn("events_list", response.context)
+    
+
+    def test_event_activation(self):
+        event=Event.objects.get(id=self.event.id)
+        self.assertEqual(event.confirmed, False)
+        response = self.client.post(f"/events/event_toggle_active/{self.event.id}")
+        event=Event.objects.get(id=self.event.id)
+        self.assertEqual(event.confirmed, True)
+        self.assertEqual(response.status_code, 302)
+
+
 if __name__ == '__main__':
     import unittest
     unittest.main()
