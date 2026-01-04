@@ -118,7 +118,9 @@ class ParticipantUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin):
         event_data["event_name"] = event.event_name
         event_data["event_location"] = ""
         event_data["event_id"] = event.id
-        participants_from_db = Participant.objects.filter(event=event).select_related("user")
+        participants_from_db = Participant.objects.filter(event=event).select_related(
+            "user"
+        )
 
         participants = []
         for participant in participants_from_db:
@@ -285,14 +287,16 @@ class ParticipantExcludeUpdateView(EventOwnerMixin, FormView, LoginRequiredMixin
         participants = []
         excludes = {}
 
-        participants_queryset = Participant.objects.filter(event_id=event_id).select_related("user")
+        participants_queryset = Participant.objects.filter(
+            event_id=event_id
+        ).select_related("user")
         for participant_item in participants_queryset:
             participants.append([participant_item.user.email, participant_item.name])
 
         excludes_queryset = Exclusion.objects.filter(event_id=event_id).select_related(
-            'participant__user', 'excluded_participant__user'
-            )
-        
+            "participant__user", "excluded_participant__user"
+        )
+
         for exclude in excludes_queryset:
             if exclude.participant.user.email not in excludes:
                 excludes[exclude.participant.user.email] = [
