@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import connection
 from django.test import Client, TestCase
 from django.test.utils import CaptureQueriesContext
-from events.models import Draw, Event, Participant
+from events.models import Event, Participant
 
 User = get_user_model()
 
@@ -44,7 +44,6 @@ class ParticipantUpdateViewQueryTest(TestCase):
                 }
             )
 
-        # Log in as the owner
         self.client = Client()
         self.client.login(email="owner@test.com", password="testpass123")
 
@@ -52,11 +51,6 @@ class ParticipantUpdateViewQueryTest(TestCase):
         with CaptureQueriesContext(connection) as context:
             self.client.get(f"/events/event_update_participants/{self.event.id}")
 
-        print(f"\n Query count: {len(context)}")
-        for i, query in enumerate(context, 1):
-            print(f"Query {i}: {query['sql'][:100]}...")
-
-        # Ensure we have at least the basic queries (event + participants)
         self.assertGreaterEqual(
             len(context),
             2,
@@ -128,8 +122,6 @@ class ParticipantUpdateViewQueryTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        # response = self.client.get(f'/events/event_update_participants/{self.event.id}')
-        # participants = response.context['participants']
         participants = Participant.objects.filter(event_id=self.event.id)
         for participant in participants:
             email, name = participant.user.email, participant.name
@@ -171,13 +163,8 @@ class EventViewQueryTest(TestCase):
                 }
             )
 
-        # Log in as the owner
         self.client = Client()
         self.client.login(email="owner@test.com", password="testpass123")
-
-        print(self.event)
-        draws = Draw.objects.all()
-        print(f"draws_queryset:{draws}")
 
     def test_event_list_view_status(self):
         response = self.client.get("/events/event_list/")
