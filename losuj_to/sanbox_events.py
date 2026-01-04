@@ -1,4 +1,4 @@
-from events.models import Event, Exclusion, Participant
+from events.models import Event, Exclusion, Participant, CustomUser
 from django.test.utils import CaptureQueriesContext
 from django.db import connection
 
@@ -25,7 +25,7 @@ with CaptureQueriesContext(connection) as ctx:
 
 print("Excludes::")
 print(excludes)
-print(f"ilosc zapytan: {len(ctx)}")
+print(f"no of queries: {len(ctx)}")
 
 event_id = 2
 with CaptureQueriesContext(connection) as ctx2:
@@ -59,3 +59,27 @@ print(f"ilosc zapytan: {len(ctx2)}")
 #         excludes[exclude.participant.user.email].append(
 #             exclude.excluded_participant.user.email
 #         )
+
+
+with CaptureQueriesContext(connection) as ctx:
+    user = CustomUser.objects.all().first()
+    print(f"user: {user}")
+    owned_events = Event.objects.filter(owner=user).select_related("owner")
+    print(f"owned_events: {owned_events}")
+    events_dict = {}
+    for event in owned_events:
+        event_class = "event-item"
+        events_dict[event.id] = {
+            "event_name": event.event_name,
+            "owner": event.owner.email,
+            "owned": True,
+            "event_date": event.event_date,
+            "event_draw_date": event.draw_date,
+            "participated": False,
+            "draw_collected": False,
+            "event_confirmed": event.confirmed,
+        }
+
+    print(f"events_dict: {events_dict}")
+
+print(f"no of queries: {len(ctx)}")

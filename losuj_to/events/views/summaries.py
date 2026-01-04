@@ -152,7 +152,7 @@ class EventListView(LoginRequiredMixin, TemplateView):
     template_name = "event/event_list.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        owned_events = Event.objects.filter(owner=request.user)
+        owned_events = Event.objects.filter(owner=request.user).select_related("owner")
         participating = Participant.objects.filter(user__email=request.user).filter(
             event__confirmed=True
         )
