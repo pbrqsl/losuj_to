@@ -5,7 +5,6 @@ from operator import attrgetter
 from typing import Any
 
 import pytz
-from celery.utils.log import get_task_logger
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpRequest, HttpResponse
@@ -203,19 +202,10 @@ class EventListView(LoginRequiredMixin, TemplateView):
         draws = Draw.objects.filter(event__in=participated_events, participant__user=request.user)
         drawing_dict = {draw.event_id: draw.collected for draw in draws}
         
-        
-        
-        print(f"draws: {draws}")
-        print(f"drawing_dict: {drawing_dict}")
-        
         for event in participated_events:
             event_class = "event-item"
-            drawing_status_old = Draw.objects.get(
-                event=event, participant__user=request.user
-            ).collected
-            print(f"drawin_status_old:{drawing_status_old}")
             drawing_status = drawing_dict.get(event.id, False)
-            print(f"drawin_status_new:{drawing_status}")
+            
             drawing_statuses[str(event.id)] = drawing_status
 
             if event.id in events_dict:

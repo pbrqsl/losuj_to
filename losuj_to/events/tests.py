@@ -4,7 +4,6 @@ from django.test.utils import CaptureQueriesContext
 from django.db import connection
 from events.models import Event, Participant, Draw
 from datetime import date
-import requests
 
 User = get_user_model()
 
