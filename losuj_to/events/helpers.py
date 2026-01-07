@@ -1,10 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from allauth.socialaccount.models import SocialToken
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from events.celery_app import send_invitation_mail
 from events.models import Event, Exclusion, Participant
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 
 def get_event_by_pk(event_id):
@@ -160,3 +164,47 @@ def send_raminder(request, participant, event, email_template):
         html_content=html_content,
     )
     return task
+
+
+def create_google_calendar_event(
+    user, summary, start_time, end_time, description=None, location=None
+):
+    try:
+        social_token = SocialToken.objects.get(
+            account__user=user, account__provider="google"
+        )
+        # social_token = SocialToken.objects.all()
+
+    except SocialToken.DoesNotExist:
+        raise Exception("No google token available")
+    client_id = settings.SOCIALACCOUNT_PROVIDERS["google"]["APP"]["client_id"]
+    client_secret = settings.SOCIALACCOUNT_PROVIDERS["google"]["APP"]["secret"]
+    creds = Credentials(
+        token=social_token.token,
+        refresh_token=social_token.token_secret,
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=client_id,
+        client_secret=client_secret,
+        scopes=["https://www.googleapis.com/auth/calendar.events"],
+    )
+    service = build("calendar", "v3", credentials=creds)
+
+    start_date = start_time["dateTime"]
+    print(start_date)
+    # start_date = datetime.strptime("start_date", "%Y-%m-%d")
+
+    print(type(start_date))
+    event = {
+        "summary": summary,
+        "description": description,
+        "location": location,
+        "start": {"date": start_date.strftime("%Y-%m-%d")},
+        "end": {"date": (start_date + timedelta(days=1)).strftime("%Y-%m-%d")},
+    }
+    service.events().insert(calendarId="primary", body=event).execute()
+
+    print(social_token)
+    print(social_token.token_secret)
+    print(client_id)
+    print(client_secret)
+    print(event)

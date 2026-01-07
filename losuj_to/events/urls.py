@@ -25,6 +25,7 @@ from events.views.participants import (
 )
 from events.views.summaries import (
     EventAdminDetailView,
+    EventGoogleCalendarView,
     EventListView,
     EventUserDetailView,
 )
@@ -49,6 +50,11 @@ urlpatterns = [
         "event_summary/<int:pk>", EventAdminDetailView.as_view(), name="event_summary"
     ),
     path("event_view/<int:pk>", EventUserDetailView.as_view(), name="event_view"),
+    path(
+        "google_cal_view/<int:pk>",
+        EventGoogleCalendarView.as_view(),
+        name="google_calendar_view",
+    ),
     path(
         "event_view/<slug:hash>",
         EventUserDetailView.as_view(),

@@ -7,3 +7,5 @@ losuj_to/staticfiles/
 *.png
 *.jpg
 .venv/
+sandbox/
+venv/
