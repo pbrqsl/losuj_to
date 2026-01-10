@@ -8,12 +8,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import TemplateView
-from events.helpers import (
-    create_google_calendar_event,
-    get_and_validate_event,
-    get_event_by_hash,
-    get_event_by_pk,
-)
+from events.helpers import get_and_validate_event, get_event_by_hash, get_event_by_pk
 from events.mixins import EventOwnerMixin
 from events.models import Draw, Event, Participant, Wish
 
@@ -144,104 +139,6 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "drawn_participant_wishes": drawn_paricipant_wishes,
             "participants": participants,
         }
-
-        return render(request, self.template_name, context={"event_data": event_data})
-
-
-class EventGoogleCalendarView(TemplateView, LoginRequiredMixin):
-    template_name = "event/participant_event_view.html"
-
-    def get_event(self):
-        event_id = self.kwargs.get("pk")
-        event_hash = self.kwargs.get("hash")
-
-        if event_id is not None:
-            return get_event_by_pk(event_id=event_id)
-        elif event_hash is not None:
-            return get_event_by_hash(event_hash=event_hash)
-        else:
-            raise Http404
-
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        event = self.get_event()
-        can_collect = False
-
-        if not event.confirmed:
-            messages.add_message(
-                self.request,
-                messages.ERROR,
-                "The event you are looking for does not exist or is not active!",
-            )
-            return redirect(reverse("home"))
-            raise Http404
-
-        if event.draw_date:
-            datetime_now = datetime.now()
-            local_timezone = pytz.timezone("Europe/Berlin")
-            datetime_now = datetime_now.astimezone(local_timezone)
-            datetime_now = datetime_now.replace(tzinfo=None)
-            drawing_date = event.draw_date
-            drawing_date = drawing_date.replace(tzinfo=None)
-
-            if drawing_date <= datetime_now:
-                can_collect = True
-        else:
-            can_collect = True
-
-        participant = get_object_or_404(
-            Participant, user__email=self.request.user.email, event=event
-        )
-        draw = get_object_or_404(Draw, event=event, participant=participant)
-
-        participant_wishes = Wish.objects.filter(event=event, participant=participant)
-        drawn_paricipant_wishes = Wish.objects.filter(
-            event=event, participant=draw.drawn_participant
-        )
-
-        event_validate = get_and_validate_event(event)
-        participants = event_validate["participants"]
-        print(participants)
-
-        event_data = {
-            "event_name": event.event_name,
-            "event_location": "",
-            "event_date": event.event_date,
-            "draw_date": event.draw_date,
-            "price_limit": event.price_limit,
-            "price_currency": event.price_currency,
-            "event_id": event.id,
-            "draw_collected": draw.collected,
-            "drawn_participant": draw.drawn_participant.name,
-            "drawn_participant_id": draw.drawn_participant.id,
-            "participant": participant.name,
-            "can_collect": can_collect,
-            "draw_id": draw.id,
-            "participant_wishes": participant_wishes,
-            "drawn_participant_wishes": drawn_paricipant_wishes,
-            "participants": participants,
-        }
-        print(event_data)
-        # google calendar logic test
-        print("google calendar here!!!!")
-        end_datetime = event.event_date + timedelta(hours=1)
-        event_gc = {
-            "summary": event.event_name,
-            "description": "test_description",
-            "location": "test_location",
-            "start": {"dateTime": event.event_date, "timeZone": "Europe/Warsaw"},
-            "end": {"dateTime": end_datetime.isoformat(), "timeZone": "Europe/Warsaw"},
-        }
-        print(event_gc)
-        print(request.user)
-        create_google_calendar_event(
-            user=request.user,
-            start_time=event_gc["start"],
-            end_time=event_gc["end"],
-            description=event_gc["description"],
-            summary="test_summary",
-        )
-
-        # print(create_google_calendar_event)
 
         return render(request, self.template_name, context={"event_data": event_data})
 
