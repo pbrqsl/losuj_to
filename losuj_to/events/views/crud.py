@@ -21,7 +21,7 @@ from events.helpers import (
     get_event_by_pk,
 )
 from events.mixins import EventOwnerMixin
-from events.models import Draw, Event
+from events.models import Draw, Event, EventCalendarSync, Participant
 
 
 class EventCreateView(LoginRequiredMixin, FormView):
@@ -227,7 +227,7 @@ class AddToGoogleCalendarView(LoginRequiredMixin, FormView):
         end_time = {"dateTime": event.event_date}
 
         try:
-            create_google_calendar_event(
+            google_calendar_event = create_google_calendar_event(
                 user=user,
                 summary=summary,
                 start_time=start_time,
@@ -236,6 +236,21 @@ class AddToGoogleCalendarView(LoginRequiredMixin, FormView):
                 location=location,
             )
             messages.success(request, "Event has been added to the calendar!")
+
+        except Exception:
+            messages.error(
+                request,
+                "Soemthing wen't wrong with adding to google calendar, make sure you are signed in as google user.",
+            )
+
+        try:
+            participant = Participant.objects.get(event=event, user=user)
+            event_calendar_sync, created = EventCalendarSync.objects.update_or_create(
+                user=user,
+                event=event,
+                participant=participant,
+                google_event_id=google_calendar_event,
+            )
             return redirect(success_url)
         except Exception:
             messages.error(

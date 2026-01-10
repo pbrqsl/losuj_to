@@ -190,10 +190,9 @@ def create_google_calendar_event(
     service = build("calendar", "v3", credentials=creds)
 
     start_date = start_time["dateTime"]
-    print(start_date)
+
     # start_date = datetime.strptime("start_date", "%Y-%m-%d")
 
-    print(type(start_date))
     event = {
         "summary": summary,
         "description": description,
@@ -201,10 +200,7 @@ def create_google_calendar_event(
         "start": {"date": start_date.strftime("%Y-%m-%d")},
         "end": {"date": (start_date + timedelta(days=1)).strftime("%Y-%m-%d")},
     }
-    service.events().insert(calendarId="primary", body=event).execute()
+    result = service.events().insert(calendarId="primary", body=event).execute()
+    # print(result["status"])
 
-    print(social_token)
-    print(social_token.token_secret)
-    print(client_id)
-    print(client_secret)
-    print(event)
+    return result["id"]
