@@ -123,7 +123,6 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
         event_calendar = EventCalendarSync.objects.filter(
             user=self.request.user, event=event
         ).first()
-
         event_data = {
             "event_name": event.event_name,
             "event_location": "",
@@ -151,7 +150,7 @@ class EventListView(LoginRequiredMixin, TemplateView):
     template_name = "event/event_list.html"
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        owned_events = Event.objects.filter(owner=request.user)
+        owned_events = Event.objects.filter(owner=request.user).select_related("owner")
         participating = Participant.objects.filter(user__email=request.user).filter(
             event__confirmed=True
         )
@@ -199,11 +198,15 @@ class EventListView(LoginRequiredMixin, TemplateView):
                 event_class += " older-than-7"
             events_dict[event.id]["event_class"] = event_class
 
+        draws = Draw.objects.filter(
+            event__in=participated_events, participant__user=request.user
+        )
+        drawing_dict = {draw.event_id: draw.collected for draw in draws}
+
         for event in participated_events:
             event_class = "event-item"
-            drawing_status = Draw.objects.get(
-                event=event, participant__user=request.user
-            ).collected
+            drawing_status = drawing_dict.get(event.id, False)
+
             drawing_statuses[str(event.id)] = drawing_status
 
             if event.id in events_dict:
@@ -243,7 +246,6 @@ class EventListView(LoginRequiredMixin, TemplateView):
         events_list_by_date = sorted(events_list, key=lambda d: d["event_date"])
 
         local_timezone = pytz.timezone("Europe/Berlin")
-
         return render(
             request,
             self.template_name,

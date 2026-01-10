@@ -1,5 +1,8 @@
 .idea/
 .env
+sandbox/
+venv/
+
 __pycache__/
 losuj_to/sent_emails/
 losuj_to/celerybeat-schedule
@@ -9,3 +12,5 @@ losuj_to/staticfiles/
 .venv/
 sandbox/
 venv/
+losuj_to/sanbox_events.py
+
