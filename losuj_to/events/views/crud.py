@@ -14,9 +14,14 @@ from events.forms import (
     EventConfirmDeactivationForm,
     EventCreateForm,
 )
-from events.helpers import confirm_event, get_and_validate_event, get_event_by_pk
+from events.helpers import (
+    confirm_event,
+    create_google_calendar_event,
+    get_and_validate_event,
+    get_event_by_pk,
+)
 from events.mixins import EventOwnerMixin
-from events.models import Draw, Event
+from events.models import Draw, Event, EventCalendarSync, Participant
 
 
 class EventCreateView(LoginRequiredMixin, FormView):
@@ -204,3 +209,52 @@ class EventDeactivateView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
         event.save()
 
         return redirect(success_url)
+
+
+class AddToGoogleCalendarView(LoginRequiredMixin, FormView):
+    success_url = "event_view"
+
+    def post(self, request, event_id):
+        event = get_event_by_pk(event_id)
+
+        success_url = reverse(self.success_url, kwargs={"pk": event.id})
+        user = request.user
+
+        summary = event.event_name
+        description = "description_placeholder"
+        location = event.event_location
+        start_time = {"dateTime": event.event_date}
+        end_time = {"dateTime": event.event_date}
+
+        try:
+            google_calendar_event = create_google_calendar_event(
+                user=user,
+                summary=summary,
+                start_time=start_time,
+                end_time=end_time,
+                description=description,
+                location=location,
+            )
+            messages.success(request, "Event has been added to the calendar!")
+
+        except Exception:
+            messages.error(
+                request,
+                "Soemthing wen't wrong with adding to google calendar, make sure you are signed in as google user.",
+            )
+
+        try:
+            participant = Participant.objects.get(event=event, user=user)
+            event_calendar_sync, created = EventCalendarSync.objects.update_or_create(
+                user=user,
+                event=event,
+                participant=participant,
+                google_event_id=google_calendar_event,
+            )
+            return redirect(success_url)
+        except Exception:
+            messages.error(
+                request,
+                "Soemthing wen't wrong with adding to google calendar, make sure you are signed in as google user.",
+            )
+            return redirect(success_url)

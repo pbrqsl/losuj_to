@@ -10,5 +10,7 @@ losuj_to/staticfiles/
 *.png
 *.jpg
 .venv/
+sandbox/
+venv/
 losuj_to/sanbox_events.py
 

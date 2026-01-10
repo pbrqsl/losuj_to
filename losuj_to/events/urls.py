@@ -1,5 +1,6 @@
 from django.urls import path
 from events.views.crud import (
+    AddToGoogleCalendarView,
     EventActivateView,
     EventCreateView,
     EventDeactivateView,
@@ -123,5 +124,10 @@ urlpatterns = [
         "status_stream_wishes/<int:pk>/<str:task_ids>",
         InvitationWishesStreamWaitView.as_view(),
         name="event_send_invitation_wishes_status_stream",
+    ),
+    path(
+        "add_to_google_calendar/<int:event_id>/",
+        AddToGoogleCalendarView.as_view(),
+        name="add_to_google_calendar",
     ),
 ]

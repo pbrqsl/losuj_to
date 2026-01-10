@@ -120,3 +120,16 @@ class EmailTask(models.Model):
 
     def __repr__(self):
         return f"owner: {self.owner}; event: {self.event}; email: {self.email}; status: {self.status}; "
+
+
+class EventCalendarSync(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    google_event_id = models.CharField(max_length=255, blank=True, null=True)
+    synced_at = models.DateTimeField(auto_now_add=True)
+    last_sync_status = models.CharField(max_length=64, blank=True, null=True)
+
+    class Meta:
+        unique_together = ("user", "event", "participant")

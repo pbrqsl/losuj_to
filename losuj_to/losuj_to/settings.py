@@ -36,7 +36,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 
-SITE_ID = 1
+SITE_ID = 4
 
 # Application definition
 
@@ -92,11 +92,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "losuj_to.wsgi.application"
 
-CSRF_TRUSTED_ORIGINS = ["https://losujto.brqdev.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://losujto.brqdev.com",
+    "https://suggestive-kaden-subcortically.ngrok-free.dev",
+]
+
+SOCIALACCOUNT_STORE_TOKENS = True
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
-        "SCOPE": ["profile", "email"],
+        "SCOPE": [
+            "profile",
+            "email",
+            "https://www.googleapis.com/auth/calendar.events",
+        ],
         "AUTH_PARAMS": {"access_type": "online"},
         "APP": {
             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
@@ -203,11 +212,11 @@ EMAIL_USE_TML = True
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 
-# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-# EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
 # CELERY_BEAT_SCHEDULE = {
 #     "Schedule_1": {
@@ -234,3 +243,5 @@ AWS_DEFAULT_ACL = None
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",
 }
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 from events.helpers import get_and_validate_event, get_event_by_hash, get_event_by_pk
 from events.mixins import EventOwnerMixin
-from events.models import Draw, Event, Participant, Wish
+from events.models import Draw, Event, EventCalendarSync, Participant, Wish
 
 
 class EventAdminDetailView(EventOwnerMixin, TemplateView, LoginRequiredMixin):
@@ -120,6 +120,9 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
         event_validate = get_and_validate_event(event)
         participants = event_validate["participants"]
 
+        event_calendar = EventCalendarSync.objects.filter(
+            user=self.request.user, event=event
+        ).first()
         event_data = {
             "event_name": event.event_name,
             "event_location": "",
@@ -137,6 +140,7 @@ class EventUserDetailView(TemplateView, LoginRequiredMixin):
             "participant_wishes": participant_wishes,
             "drawn_participant_wishes": drawn_paricipant_wishes,
             "participants": participants,
+            "event_calendar": event_calendar,
         }
 
         return render(request, self.template_name, context={"event_data": event_data})
